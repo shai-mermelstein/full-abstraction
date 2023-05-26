@@ -165,9 +165,9 @@ Inductive CSemantics' : com -> pairsP state :=
   | SmPar' : forall c1 c2,
     LP([|c1|]' # [|c2|]') |= [|c1 || c2|]'
   | SmAwait' : forall b c s s',
-    [|b|]'t [(s, s)]
+    [|b|]t [(s, s)]
       ->
-    [|c|]' [(s, s')]
+    [|c|] [(s, s')]
       ->
     LP({[(s, s')]}) |= [|await b then c end|]'
   where "[| c |]'" := (CSemantics' c).
@@ -807,9 +807,95 @@ Proof with ellipsis.
       * repeat rewrite <- app_assoc in *.
         apply sm_mumbly with y0...
   - invert H.
-    remember LP(([|b|]t; [|c|]) * + [|b|]f)
+    admit.
+    (* remember LP(([|b|]t; [|c|]) * + [|b|]f)
       as P.
     clean_induction H3.
     invert H. destruct H0 as [y [H []]].
     apply BSemantics_equiv' in H0.
+    remember LP([|b|]t ; [|c|]) as P.
+    generalize dependent l.
+    clean_induction H.
+    + remember LP([|b|]'f) as P.
+      clean_induction H0; simpl in *.
+      * apply sm_self. apply SmWhile'.
+        exists nil, l. split...
+      * replace (l1 ++ (x, x) :: l2)
+          with (l1 ++ [(x, x)] ++ l2)...
+      * replace (l1 ++ (x, z) :: l2)
+          with (l1 ++ [(x, z)] ++ l2)...
+        replace (l1 ++ (x, y) :: (y, z) :: l2)
+          with (l1 ++ [(x, y); (y, z)] ++ l2)
+          in IHstutter_mumble_closure...
+    + assert (l2 ++ y = l2 ++ y)...
+      clean_apply_in IHstarP H2.
+      remember LP([|b|]t + [|c|]) as P.
+      clean_induction H.
+      * invert H. destruct H3 as [z [H []]].
+        subst.
+        remember [|while b do c end |]' as P.
+        remember (l2 ++ y) as l.
+        generalize dependent y.
+        generalize dependent l2.
+        clean_induction H2. *)
+  - invert H.
+    remember LP([|c1|] # [|c2|]) as P.
+    clean_induction H3.
+    invert H. destruct H0 as [y [H []]].
+    clean_apply_in IHc1 H.
+    clean_apply_in IHc2 H0.
+    remember [|c1|]' as P.
+    generalize dependent l.
+    clean_induction H.
+    remember [|c2|]' as P.
+    generalize dependent l0.
+    clean_induction H0.
+    + apply sm_self. apply SmPar'...
+    + apply int_replace2 
+        with (new:=[]) in H1.
+      destruct H1 as [z1 [z2 []]].
+      subst.
+      apply sm_stuttery...
+    + apply int_replace2 
+        with (new:=[(x, y); (y, z)]) in H1.
+      destruct H1 as [z1 [z2 []]].
+      subst.
+      eapply sm_mumbly...
+    + apply int_replace1
+        with (new:=[]) in H1.
+      destruct H1 as [z1 [z2 []]].
+      subst.
+      apply sm_stuttery...
+    + apply int_replace1
+        with (new:=[(x, y0); (y0, z)]) in H1.
+      destruct H1 as [z1 [z2 []]].
+      subst.
+      eapply sm_mumbly...
+  - invert H.
+    remember LP({[(s, s')]}) as P.
+    clean_induction H5.
+    apply sm_self. eapply SmAwait'...
+  - remember [|skip|]' as P.
+    clean_induction H.
+    + invert H. eapply SmSkip...
+    + invert IHstutter_mumble_closure.
+      eapply SmSkip...
+    + invert IHstutter_mumble_closure.
+      eapply SmSkip...
+  - remember [|i := a|]' as P.
+    clean_induction H.
+    + invert H. invert H3.
+      destruct H as [y [H []]].
+      eapply SmAsgn. 
+      apply sm_self.
+      exists x, y. split...
+      apply sm_self in H.
+      apply ASemantics_equiv' in H...
+    + invert IHstutter_mumble_closure.
+      eapply SmAsgn...
+    + invert IHstutter_mumble_closure.
+      eapply SmAsgn...
+Admitted.
+        
+        
     
