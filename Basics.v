@@ -19,7 +19,7 @@ Definition equiv {A} (P1 P2 : A -> Prop)
 Infix "~" := equiv (at level 90).
 #[global] Hint Transparent equiv : core.
 
-Definition ID {A} (a : A) (a' : A) := a = a'.
+Definition Id {A} (a : A) (a' : A) := a = a'.
 
 Lemma equiv_refl :
   forall A (P : A -> Prop), P ~ P.
