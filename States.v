@@ -8,12 +8,10 @@ From Coq Require Import FinFun.
 Import ListNotations.
 From WS Require Import Tactics.
 From WS Require Import Basics.
+From WS Require Import Lists.
 
 Parameter identifier : Type.
 Definition identifiers := list identifier.
-
-Parameter dom : list identifier.
-Axiom dom_full : Full dom.
 
 Parameter ieq : identifier -> identifier -> bool.
 Notation "i '=?' j" := (ieq i j)
@@ -44,6 +42,13 @@ Notation "i '|->' n" := (i |-> n ; empty_s)
 Definition transition : Type := state * state.
 Definition transitions := list transition.
 #[global] Hint Transparent transition transitions : core.
+
+Parameter dom : identifiers.
+Axiom states_equal_by_dom : 
+  forall (s s' : state), 
+    s = s' 
+      <-> 
+    forall i, i <: dom -> s i = s' i.
 
 (* claims *)
 
@@ -91,10 +96,10 @@ Proof with ellipsis.
   rewrite H...
 Qed. 
 
-Lemma states_equal :
+(* Lemma states_equal :
   forall (s1 s2 : state),
     s1 = s2 <-> forall v, s1 v = s2 v.
 Proof with ellipsis.
   intros. split; intros...
   apply functional_extensionality...
-Qed.
+Qed. *)

@@ -48,7 +48,7 @@ Notation "c '/st' d" := (~(c =st d))
 
 (* auxiliary definitions *)
 
-Fixpoint is_state (is : identifiers) s :=
+Fixpoint is_state (is : identifiers) (s : state) :=
   match is with
   | nil     => <{true}>
   | i :: is => <{i = (s i) && (is_state is s)}>
@@ -76,57 +76,6 @@ Proof with ellipsis.
   invert H1...
 Qed. 
 
-Lemma bottleneck_await :
-  forall cl b cr2 s0 sw,
-    <{cl || (await b then skip end ; cr2)}> / s0 -->* <{skip}> / sw ->
-    exists cl' s1,
-      cl / s0 -->* cl' / s1
-        /\
-      <{cl' || (await b then skip end ; cr2)}> / s1 --> <{cl' || (skip ; cr2)}> / s1
-        /\
-      <{cl' || (skip ; cr2)}> / s1 -->* <{skip}> / sw.
-Proof with eauto.
-  intros.
-  remember (<{await b then skip end}>) as cr1.
-  remember (<{cl || cr1; cr2}>, s0) as cf0 eqn:E0.
-  remember (<{skip}>, sw) as cfw eqn:Ew.
-  generalize dependent s0. 
-  generalize dependent cl. 
-  generalize dependent cr2.
-  induction H; intros; simpl in *; subst.
-  - clean_inversion E0.
-  - clean_inversion H.
-    + assert ((<{ skip }>, sw) = (<{ skip }>, sw)) by auto.
-      apply IHmulti with cr2 c1' s' in H...
-      destruct H. destruct H. destruct H. destruct H1.
-      exists x, x0...
-    + clean_inversion H5.
-      clean_inversion H1.
-      exists cl, s0. split... split...
-      clean_inversion H7.
-      clean_inversion H.
-Qed.
-
-Lemma multi_step_par1 :
-  forall c1 c2 c1' s s',
-    c1 / s -->* c1' / s'
-      ->
-    <{c1 || c2}> / s -->* <{c1' || c2}> / s'.
-Proof with eauto.
-  intros.
-  remember (c1, s) as cf eqn:E.
-  remember (c1', s') as cf' eqn:E'.
-  replace c1 with (fst cf) in * by (rewrite E; auto).
-  replace s with (snd cf) in * by (rewrite E; auto).
-  replace c1' with (fst cf') in * by (rewrite E'; auto).
-  replace s' with (snd cf') in * by (rewrite E'; auto).
-  clear E E' c1 c1' s s'.
-  induction H...
-  eapply multi_step...
-  eapply CS_Par1.
-  clean_inversion H.
-Qed.
-
 Lemma is_state_self :
   forall is s,
     is_state is s / s -->b* <{true}>.
@@ -148,6 +97,23 @@ Proof with ellipsis.
   rewrite Nat.eqb_refl...
 Qed.
 
+Lemma is_state_is :
+  forall s s',
+    is_state dom s / s' -->b* <{true}>
+      ->
+    s' = s.
+Proof with ellipsis.
+  intros.
+  apply states_equal_by_dom. intros j Hj.
+  induction dom as [ |i is]...
+  invert H. invert H0. invert H4...
+  invert H3. invert H1. invert H.
+  invert H4...
+  destruct (s' i =? s i)%nat eqn:E.
+  - apply Nat.eqb_eq in E.
+    invert H0. invert H...
+  - solve_by_inverts 4.
+Qed.
 
 Lemma PC_from_ST :
   forall c s0 sw ss,
@@ -196,8 +162,28 @@ Proof with ellipsis.
         simpl. apply CS_SeqStep.
         clear. apply CS_AwaitTrue...
         apply is_state_self.
-  - admit.
-Admitted.
+  - simpl in H.
+    generalize dependent s0.
+    generalize dependent c.
+    clean_induction ss; simpl in *.
+    + apply bottleneck_await in H.
+      destruct H as [c' [s1 [s2 [H []]]]].
+      apply ST_Term.
+      invert H0.
+      apply is_state_is in H4. subst.
+      invert H7...
+      eapply multi_trans... 
+      clear H c s0.
+      rename c' into c. rename s2 into s.
+      apply multi_step_par_skip...
+      apply par_bottleneck...
+    + rename a into s1.
+      apply bottleneck_await in H.
+      destruct H as [c' [s1' [s2 [H []]]]].
+      invert H0.
+      apply is_state_is in H4. subst.
+      invert H7...
+Qed.
 
 Theorem PC_equiv_ST: 
   forall c d, c <pc d <-> c <st d.
