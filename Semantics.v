@@ -166,9 +166,9 @@ Inductive CSemantics' : com -> pairsP state :=
   | SmPar' : forall c1 c2,
     LP([|c1|]' # [|c2|]') |= [|c1 || c2|]'
   | SmAwait' : forall b c s s',
-    [|b|]t [(s, s)]
+    LP([|b|]'t^) [(s, s)]
       ->
-    [|c|] [(s, s')]
+    LP([|c|]'^) [(s, s')]
       ->
     LP({[(s, s')]}) |= [|await b then c end|]'
   where "[| c |]'" := (CSemantics' c).
@@ -390,14 +390,14 @@ Proof with ellipsis.
       try solve [eapply SmIfTrue; ellipsis];
       try solve [eapply SmIfFalse; ellipsis].
   - induction H; ellipsis;
-    invert IHstutter_mumble_closure;
-    eapply SmWhile...
+      invert IHstutter_mumble_closure;
+      eapply SmWhile...
   - induction H; ellipsis;
-    invert IHstutter_mumble_closure;
-    eapply SmPar...
+      invert IHstutter_mumble_closure;
+      eapply SmPar...
   - induction H; ellipsis;
-    invert IHstutter_mumble_closure;
-    eapply SmAwait...
+      invert IHstutter_mumble_closure;
+      eapply SmAwait...
 Qed.
 
 Theorem CSemantics_equiv' :
@@ -465,6 +465,8 @@ Proof with ellipsis.
         in H...
       apply sm_closure_int...
     + eapply sm_closure_inner_implication...
+      apply BSemantics_equiv' in H2.
+      clean_apply_in IHc H3.
   - intros.
     apply CSemantics_stuttery_mumbly.
     eapply sm_closure_inner_implication...
@@ -507,5 +509,11 @@ Proof with ellipsis.
     + destruct H3 as [ts1 [ts2 [H []]]].
       apply SmPar. apply sm_self.
       eapply int_implecation...
-    + eapply SmAwait...
+    + apply BSemantics_equiv' in H2...
+      apply sm_closure_inner_implication 
+        in IHc.
+      clean_apply_in IHc H3.
+      apply CSemantics_stuttery_mumbly
+        in H3.
+      eapply SmAwait with s s'...
 Qed.
