@@ -20,17 +20,17 @@ Reserved Notation "[| a -> n |]"
   (at level 0, a custom com at level 99).
 Inductive ASemantics : aexp -> nat -> pairsP state :=
   | SmNum : forall s (n : nat),
-    LP({[(s, s)]}^) |= [|n -> n|] 
+    LP{[(s, s)]^} |= [|n -> n|] 
   | SmId : forall s (i : identifier),
-    LP({[(s, s)]}^) |= [|i -> s i|] 
+    LP{[(s, s)]^} |= [|i -> s i|] 
   | SmPlus : forall a1 a2 n1 n2,
-    LP([|a1 -> n1|] ; [|a2 -> n2|]) 
+    LP{[|a1 -> n1|] ; [|a2 -> n2|]}
       |= [|a1 + a2 -> n1 + n2|]
   | SmMinus : forall a1 a2 n1 n2,
-    LP([|a1 -> n1|] ; [|a2 -> n2|]) 
+    LP{[|a1 -> n1|] ; [|a2 -> n2|]} 
       |= [|a1 - a2 -> n1 - n2|]
   | SmMult : forall a1 a2 n1 n2,
-    LP([|a1 -> n1|] ; [|a2 -> n2|]) 
+    LP{[|a1 -> n1|] ; [|a2 -> n2|]} 
       |= [|a1 * a2 -> n1 * n2|]
   where "[| a -> n |]" := (ASemantics a n).
 #[global] Hint Constructors ASemantics : core.
@@ -43,21 +43,21 @@ Reserved Notation "[| b ->b v |]"
   (at level 0, b custom com at level 99).
 Inductive BSemantics : bexp -> bool -> pairsP state :=
   | SmTrue : forall s,
-    LP({[(s, s)]}^) |= [|true|]t
+    LP{[(s, s)]^} |= [|true|]t
   | SmFalse : forall s,
-    LP({[(s, s)]}^) |= [|false|]f
+    LP{[(s, s)]^} |= [|false|]f
   | SmNot : forall b v,
     [|b ->b v|] |= [|~b ->b negb v|]
   | SmEq : forall a1 a2 n1 n2,
-    LP([|a1 -> n1|] ; [|a2 -> n2|]) 
+    LP{[|a1 -> n1|] ; [|a2 -> n2|]} 
       |= [|a1 = a2 ->b (n1 =? n2)%nat|]
   | SmLe : forall a1 a2 n1 n2,
-    LP([|a1 -> n1|] ; [|a2 -> n2|]) 
+    LP{[|a1 -> n1|] ; [|a2 -> n2|]} 
       |= [|a1 <= a2 ->b (n1 <=? n2)%nat|]
   | SmAndFalse : forall b1 b2,
     [|b1|]f |= [|b1 && b2|]f
   | SmAndTrue : forall b1 b2 v,
-    LP([|b1|]t ; [|b2 ->b v|]) 
+    LP{[|b1|]t ; [|b2 ->b v|]} 
       |= [|b1 && b2 ->b v|]
   where "[| b |]t" := (BSemantics b true)
   and   "[| b |]f" := (BSemantics b false)
@@ -68,29 +68,29 @@ Reserved Notation "[| c |]"
   (at level 0, c custom com at level 99).
 Inductive CSemantics : com -> pairsP state :=
   | SmSkip : forall s,
-    LP({[(s, s)]}^) |= [|skip|]
+    LP{[(s, s)]^} |= [|skip|]
   | SmAsgn : forall i a n s,
-    LP([|a -> n|] ; {[(s, (i |-> n; s))]}) 
+    LP{[|a -> n|] ; [(s, (i |-> n; s))]} 
       |= [|i := a|]
   | SmSeq : forall c1 c2,
-    LP([|c1|]; [|c2|]) |= [|c1; c2|]
+    LP{[|c1|]; [|c2|]} |= [|c1; c2|]
   | SmIfTrue : forall b c1 c2,
-    LP([|b|]t ; [|c1|]) 
+    LP{[|b|]t ; [|c1|]} 
       |= [|if b then c1 else c2 end|]
   | SmIfFalse : forall b c1 c2,
-    LP([|b|]f ; [|c2|])
+    LP{[|b|]f ; [|c2|]}
       |= [|if b then c1 else c2 end|]
   | SmWhile : forall b c,
-    LP(([|b|]t ; [|c|])* ; [|b|]f) (* star does not include ^, unlike Brookes*)
+    LP{([|b|]t ; [|c|])* ; [|b|]f} (* star does not include ^, unlike Brookes*)
       |= [|while b do c end|]
   | SmPar : forall c1 c2,
-    LP([|c1|] || [|c2|]) |= [|c1 || c2|]
+    LP{[|c1|] || [|c2|]} |= [|c1 || c2|]
   | SmAwait : forall b c s s',
     [|b|]t [(s, s)]
       ->
     [|c|] [(s, s')]
       ->
-    LP({[(s, s')]}^) |= [|await b then c end|]
+    LP{[(s, s')]^} |= [|await b then c end|]
   where "[| c |]" := (CSemantics c).
 #[global] Hint Constructors CSemantics : core.
 
@@ -100,17 +100,17 @@ Reserved Notation "[| a -> n |]'"
   (at level 0, a custom com at level 99).
 Inductive ASemantics' : aexp -> nat -> pairsP state :=
   | SmNum' : forall s (n : nat),
-    LP({[(s, s)]}) |= [|n -> n|]'
+    LP{[(s, s)]} |= [|n -> n|]'
   | SmId' : forall s (i : identifier),
-    LP({[(s, s)]}) |= [| i -> s i|]' 
+    LP{[(s, s)]} |= [| i -> s i|]' 
   | SmPlus' : forall a1 a2 n1 n2,
-    LP([|a1 -> n1|]' + [|a2 -> n2|]') 
+    LP{[|a1 -> n1|]' + [|a2 -> n2|]'}
       |= [|a1 + a2 -> n1 + n2|]'
   | SmMinus' : forall a1 a2 n1 n2,
-    LP([|a1 -> n1|]' + [|a2 -> n2|]') 
+    LP{[|a1 -> n1|]' + [|a2 -> n2|]'}
       |= [|a1 - a2 -> n1 - n2|]'
   | SmMult' : forall a1 a2 n1 n2,
-    LP([|a1 -> n1|]' + [|a2 -> n2|]') 
+    LP{[|a1 -> n1|]' + [|a2 -> n2|]'} 
       |= [|a1 * a2 -> n1 * n2|]'
   where "[| a -> n |]'" := (ASemantics' a n).
 #[global] Hint Constructors ASemantics' : core.
@@ -123,21 +123,21 @@ Reserved Notation "[| b ->b v |]'"
   (at level 0, b custom com at level 99).
 Inductive BSemantics' : bexp -> bool -> pairsP state :=
   | SmFalse' : forall s,
-    LP({[(s, s)]}) |= [|true|]'t
+    LP{[(s, s)]} |= [|true|]'t
   | SmTrue' : forall s,
-    LP({[(s, s)]}) |= [|false|]'f
+    LP{[(s, s)]} |= [|false|]'f
   | SmNot' : forall b v,
     [|b ->b v|]' |= [|~b ->b negb v|]'
   | SmEq' : forall a1 a2 n1 n2,
-    LP([|a1 -> n1|]' + [|a2 -> n2|]')
+    LP{[|a1 -> n1|]' + [|a2 -> n2|]'}
       |= [|a1 = a2 ->b (n1 =? n2)%nat|]'
   | SmLe' : forall a1 a2 n1 n2,
-    LP([|a1 -> n1|]' + [|a2 -> n2|]') 
+    LP{[|a1 -> n1|]' + [|a2 -> n2|]'}
       |= [|a1 <= a2 ->b (n1 <=? n2)%nat|]'
   | SmAndFalse' : forall b1 b2,
     [|b1|]'f |= [|b1 && b2|]'f
   | SmAndTrue' : forall b1 b2 v,
-    LP([|b1|]'t + [|b2 ->b v|]') 
+    LP{[|b1|]'t + [|b2 ->b v|]'}
       |= [|b1 && b2 ->b v|]'
   where "[| b |]'t" := (BSemantics' b true)
   and   "[| b |]'f" := (BSemantics' b false)
@@ -148,29 +148,29 @@ Reserved Notation "[| c |]'"
   (at level 0, c custom com at level 99).
 Inductive CSemantics' : com -> pairsP state :=
   | SmSkip' : forall s,
-    LP({[(s, s)]}) |= [|skip|]'
+    LP{[(s, s)]} |= [|skip|]'
   | SmAsgn' : forall i a n s,
-    LP([| a -> n |]' + {[(s, (i |-> n; s))]}) 
+    LP{[| a -> n |]' + [(s, (i |-> n; s))]} 
       |= [|i := a|]'
   | SmSeq' : forall c1 c2,
-    LP([|c1|]' + [|c2|]') |= [|c1; c2|]'
+    LP{[|c1|]' + [|c2|]'} |= [|c1; c2|]'
   | SmIfTrue' : forall b c1 c2,
-    LP([|b|]'t + [|c1|]') 
+    LP{[|b|]'t + [|c1|]'} 
       |= [|if b then c1 else c2 end|]'
   | SmIfFalse' : forall b c1 c2,
-    LP([|b|]'f + [|c2|]')
+    LP{[|b|]'f + [|c2|]'}
       |= [|if b then c1 else c2 end|]'
   | SmWhile' : forall b c,
-    LP(([|b|]'t + [|c|]')* + [|b|]'f) 
+    LP{([|b|]'t + [|c|]')* + [|b|]'f} 
       |= [|while b do c end|]'
   | SmPar' : forall c1 c2,
-    LP([|c1|]' # [|c2|]') |= [|c1 || c2|]'
+    LP{[|c1|]' # [|c2|]'} |= [|c1 || c2|]'
   | SmAwait' : forall b c s s',
-    LP([|b|]'t^) [(s, s)]
+    LP{[|b|]'t^} [(s, s)]
       ->
-    LP([|c|]'^) [(s, s')]
+    LP{[|c|]'^} [(s, s')]
       ->
-    LP({[(s, s')]}) |= [|await b then c end|]'
+    LP{[(s, s')]} |= [|await b then c end|]'
   where "[| c |]'" := (CSemantics' c).
 #[global] Hint Constructors CSemantics' : core.
 
@@ -182,7 +182,7 @@ Proof with ellipsis.
   intros a n ts H. destruct a.
   - assert (n0 = n); subst.
     { clean_induction H... }
-    assert (exists s, LP({[(s, s)]}^) ts)...
+    assert (exists s, LP{[(s, s)]^} ts)...
     { 
       clean_induction H...
       - invert H.
@@ -192,7 +192,7 @@ Proof with ellipsis.
         exists s...
     }
     destruct H0 as [s]. eapply SmNum...
-  - assert (exists s, LP({[(s, s)]}^) ts /\ n = s i)...
+  - assert (exists s, LP{[(s, s)]^} ts /\ n = s i)...
     { 
       clean_induction H...
       - invert H.
@@ -215,7 +215,7 @@ Qed.
 
 Theorem ASemantics_equiv' :
   forall a n,
-    [|a -> n|] ~ LP([|a -> n|]'^).
+    [|a -> n|] ~ LP{[|a -> n|]'^}.
 Proof with ellipsis.
   intros a n ts; split.
   - generalize dependent ts.
@@ -259,7 +259,7 @@ Proof with ellipsis.
   intro b. clean_induction b; intros ts H.
   - assert (v = true); subst.
     { clean_induction H... }
-    assert (exists s, LP({[(s, s)]}^) ts)...
+    assert (exists s, LP{[(s, s)]^} ts)...
     { 
       clean_induction H...
       - invert H.
@@ -271,7 +271,7 @@ Proof with ellipsis.
     destruct H0 as [s]. eapply SmTrue...
   - assert (v = false); subst.
     { clean_induction H... }
-    assert (exists s, LP({[(s, s)]}^) ts)...
+    assert (exists s, LP{[(s, s)]^} ts)...
     { 
       clean_induction H...
       - invert H.
@@ -300,7 +300,7 @@ Qed.
 
 Theorem BSemantics_equiv' :
   forall b v,
-    [|b ->b v|] ~ LP([|b ->b v|]'^).
+    [|b ->b v|] ~ LP{[|b ->b v|]'^}.
 Proof with ellipsis.
   intros b v ts; split.
   - generalize dependent ts.
@@ -360,7 +360,7 @@ Theorem CSemantics_stuttery_mumbly :
   forall c, stuttery_mumbly [|c|].
 Proof with ellipsis.
   intros c ts H. destruct c.
-  - assert (exists s, LP({[(s, s)]}^) ts)...
+  - assert (exists s, LP{[(s, s)]^} ts)...
     { 
       clean_induction H...
       - invert H.
@@ -371,7 +371,7 @@ Proof with ellipsis.
     }
     destruct H0 as [s]. eapply SmSkip...
   - assert (exists s n, 
-      LP([| a -> n |] ; {[(s, (i |-> n; s))]}) ts
+      LP{[| a -> n |] ; [(s, (i |-> n; s))]} ts
     ). 
     { 
       clean_induction H...
@@ -402,14 +402,14 @@ Qed.
 
 Theorem CSemantics_equiv' :
   forall c,
-    [|c|] ~ LP([|c|]'^).
+    [|c|] ~ LP{[|c|]'^}.
 Proof with ellipsis.
   intros c ts; split.
   - generalize dependent ts.
     clean_induction c; invert H.
     + eapply sm_closure_inner_implication...
     + eapply sm_closure_inner_implication
-        with LP([|a -> n|]' + {[(s, i |-> n; s)]})...
+        with LP{[|a -> n|]' + [(s, i |-> n; s)]}...
       eapply sm_closure_inner_implication1...
       clear H3 ts; intro ts; intros.
       destruct H as [ts1 [ts2 [H []]]].
@@ -423,7 +423,7 @@ Proof with ellipsis.
       clean_apply_in IHc2 H0.
       apply sm_closure_app...
     + eapply sm_closure_inner_implication
-        with LP([|b|]'t + [|c1|]')...
+        with LP{[|b|]'t + [|c1|]'}...
       eapply sm_closure_inner_implication1...
       clear H4 ts; intro ts; intros.
       destruct H as [ts1 [ts2 [H []]]].
@@ -441,7 +441,7 @@ Proof with ellipsis.
       eapply sm_closure_inner_implication1...
       clear H3 ts; intro ts; intros.
       destruct H as [ts1 [ts2 [H []]]].
-      assert (LP(([|b|]'t ; [|c|]')*) ts1).
+      assert (LP{([|b|]'t ; [|c|]')*} ts1).
       {
         clear H0 H1 ts ts2.
         eapply star_implecation...
@@ -461,7 +461,7 @@ Proof with ellipsis.
       eapply sm_closure_inner_implication1...
       clear H3 ts; intro ts; intros.
       eapply int_implecation 
-        with (P' := LP([|c1|]'^)) (Q' := LP([|c2|]'^))
+        with (P' := LP{[|c1|]'^}) (Q' := LP{[|c2|]'^})
         in H...
       apply sm_closure_int...
     + eapply sm_closure_inner_implication...
@@ -500,7 +500,7 @@ Proof with ellipsis.
       clear H0 H1 ts ts2. rename ts1 into ts.
       apply sm_closed_star_implecation.
       apply star_implecation
-        with LP([|b|]'t + [|c|]')...
+        with LP{[|b|]'t + [|c|]'}...
       clear H ts. intros ts H.
       destruct H as [ts1 [ts2 [H []]]].
       apply sm_self in H.
