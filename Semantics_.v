@@ -213,7 +213,6 @@ Proof with ellipsis.
       eapply SmMult...
 Qed.
 
-
 Theorem ASemantics_equiv' :
   forall a n,
     [|a -> n|] ~ LP([|a -> n|]'^).
@@ -299,6 +298,218 @@ Proof with ellipsis.
       apply IHb1...
 Qed.
 
+Theorem BSemantics_equiv' :
+  forall b v,
+    [|b ->b v|] ~ LP([|b ->b v|]'^).
+Proof with ellipsis.
+  intros b v ts; split.
+  - generalize dependent ts.
+    generalize dependent v.
+    clean_induction b; invert H;
+      try solve [
+        eapply sm_closure_inner_implication; ellipsis;
+        eapply sm_closure_inner_implication1; ellipsis;
+        clear H4 ts; intro ts; intros;
+        destruct H as [ts1 [ts2 [H []]]];
+        apply ASemantics_equiv' in H;
+        apply ASemantics_equiv' in H0;
+        apply sm_closure_app; ellipsis
+      ].
+      + clean_apply_in IHb1 H4. clear IHb2.
+        apply sm_closure_inner_implication
+          with ([|b1 |]'f)...
+      + eapply sm_closure_inner_implication; ellipsis;
+        eapply sm_closure_inner_implication1; ellipsis;
+        clear H4 ts; intro ts; intros;
+        destruct H as [ts1 [ts2 [H []]]];
+        clean_apply_in IHb1 H;
+        clean_apply_in IHb2 H0;
+        apply sm_closure_app...
+  - intros.
+    apply BSemantics_stuttery_mumbly.
+    eapply sm_closure_inner_implication...
+    clear H ts. 
+    generalize dependent v.
+    clean_induction b; intros ts H; invert H.
+    + eapply SmTrue...
+    + eapply SmFalse...
+    + eapply SmEq...
+      destruct H4 as [l1 [l2 [H []]]].
+      subst. apply sm_self.
+      apply sm_self in H.
+      apply ASemantics_equiv' in H.
+      apply sm_self in H0.
+      apply ASemantics_equiv' in H0...
+    + eapply SmLe...
+      destruct H4 as [l1 [l2 [H []]]].
+      subst. apply sm_self.
+      apply sm_self in H.
+      apply ASemantics_equiv' in H.
+      apply sm_self in H0.
+      apply ASemantics_equiv' in H0...
+    + apply SmNot. apply IHb...
+    + apply SmAndFalse. apply IHb1...
+    + apply SmAndTrue.
+      destruct H4 as [l1 [l2 [H []]]].
+      subst. apply sm_self.
+      clean_apply_in IHb1 H.
+      clean_apply_in IHb2 H0...
+Qed.
+
+Theorem CSemantics_stuttery_mumbly :
+  forall c, stuttery_mumbly [|c|].
+Proof with ellipsis.
+  intros c ts H. destruct c.
+  - assert (exists s, LP({[(s, s)]}^) ts)...
+    { 
+      clean_induction H...
+      - invert H.
+      - destruct IHstutter_mumble_closure as [s].
+        exists s...
+      - destruct IHstutter_mumble_closure as [s].
+        exists s...
+    }
+    destruct H0 as [s]. eapply SmSkip...
+  - assert (exists s n, 
+      LP([| a -> n |] ; {[(s, (i |-> n; s))]}) ts
+    ). 
+    { 
+      clean_induction H...
+      - invert H.
+      - destruct IHstutter_mumble_closure 
+          as [s [n]]...
+      - destruct IHstutter_mumble_closure 
+          as [s [n]]...
+    }
+    destruct H0 as [s [n]]. eapply SmAsgn...
+  - induction H; ellipsis;
+      invert IHstutter_mumble_closure;
+      eapply SmSeq...
+  - induction H; ellipsis;
+      invert IHstutter_mumble_closure;
+      try solve [eapply SmIfTrue; ellipsis];
+      try solve [eapply SmIfFalse; ellipsis].
+  - induction H; ellipsis;
+    invert IHstutter_mumble_closure;
+    eapply SmWhile...
+  - induction H; ellipsis;
+    invert IHstutter_mumble_closure;
+    eapply SmPar...
+  - induction H; ellipsis;
+    invert IHstutter_mumble_closure;
+    eapply SmAwait...
+Qed.
+
+Theorem CSemantics_equiv' :
+  forall c,
+    [|c|] ~ LP([|c|]'^).
+Proof with ellipsis.
+  intros c ts; split.
+  - generalize dependent ts.
+    clean_induction c; invert H.
+    + eapply sm_closure_inner_implication...
+    + eapply sm_closure_inner_implication
+        with LP([|a -> n|]' + {[(s, i |-> n; s)]})...
+      eapply sm_closure_inner_implication1...
+      clear H3 ts; intro ts; intros.
+      destruct H as [ts1 [ts2 [H []]]].
+      apply ASemantics_equiv' in H.
+      apply sm_closure_app...
+    + eapply sm_closure_inner_implication...
+      eapply sm_closure_inner_implication1...
+      clear H3 ts; intro ts; intros.
+      destruct H as [ts1 [ts2 [H []]]].
+      clean_apply_in IHc1 H.
+      clean_apply_in IHc2 H0.
+      apply sm_closure_app...
+    + eapply sm_closure_inner_implication
+        with LP([|b|]'t + [|c1|]')...
+      eapply sm_closure_inner_implication1...
+      clear H4 ts; intro ts; intros.
+      destruct H as [ts1 [ts2 [H []]]].
+      apply BSemantics_equiv' in H.
+      clean_apply_in IHc1 H0.
+      apply sm_closure_app...
+    + eapply sm_closure_inner_implication...
+      eapply sm_closure_inner_implication1...
+      clear H4 ts; intro ts; intros.
+      destruct H as [ts1 [ts2 [H []]]].
+      apply BSemantics_equiv' in H.
+      clean_apply_in IHc2 H0.
+      apply sm_closure_app...
+    + eapply sm_closure_inner_implication...
+      eapply sm_closure_inner_implication1...
+      clear H3 ts; intro ts; intros.
+      destruct H as [ts1 [ts2 [H []]]].
+      assert (LP(([|b|]'t ; [|c|]')*) ts1).
+      {
+        clear H0 H1 ts ts2.
+        eapply star_implecation...
+        eapply sm_closure_inner_implication1...
+        clear H ts1. intros ts H.
+        destruct H as [ts1 [ts2 [H []]]].
+        clean_apply_in IHc H0.
+        apply sm_closure_app.
+        apply BSemantics_equiv' in H.
+        exists ts1, ts2. split...
+      }
+      eapply sm_closure_star in H2.
+      apply sm_closure_app.
+      exists ts1, ts2. repeat split...
+      apply BSemantics_equiv'... 
+    + eapply sm_closure_inner_implication...
+      eapply sm_closure_inner_implication1...
+      clear H3 ts; intro ts; intros.
+      eapply int_implecation 
+        with (P' := LP([|c1|]'^)) (Q' := LP([|c2|]'^))
+        in H...
+      
+
+    + eapply sm_closure_inner_implication...
+  - intros.
+    apply CSemantics_stuttery_mumbly.
+    eapply sm_closure_inner_implication...
+    clear H ts. 
+    clean_induction c; intros ts H; invert H.
+    + eapply SmSkip...
+    + apply SmAsgn with n s.
+      destruct H3 as [ts1 [ts2 [H []]]].
+      subst. apply sm_self.
+      apply sm_self in H.
+      apply ASemantics_equiv' in H...
+    + destruct H3 as [ts1 [ts2 [H []]]].
+      clean_apply_in IHc1 H.
+      clean_apply_in IHc2 H0.
+      apply SmSeq. apply sm_self...
+    + destruct H4 as [ts1 [ts2 [H []]]].
+      apply sm_self in H.
+      apply BSemantics_equiv' in H...
+      clean_apply_in IHc1 H0.
+      apply SmIfTrue. apply sm_self...
+    + destruct H4 as [ts1 [ts2 [H []]]].
+      apply sm_self in H.
+      apply BSemantics_equiv' in H...
+      clean_apply_in IHc2 H0.
+      apply SmIfFalse. apply sm_self...
+    + destruct H3 as [ts1 [ts2 [H []]]].
+      apply sm_self in H0.
+      apply BSemantics_equiv' in H0...
+      apply SmWhile. apply sm_self...
+      exists ts1, ts2. split...
+      clear H0 H1 ts ts2. rename ts1 into ts.
+      apply sm_closed_star_implecation.
+      apply star_implecation
+        with LP([|b|]'t + [|c|]')...
+      clear H ts. intros ts H.
+      destruct H as [ts1 [ts2 [H []]]].
+      apply sm_self in H.
+      apply BSemantics_equiv' in H.
+      clean_apply_in IHc H0... 
+    + destruct H3 as [ts1 [ts2 [H []]]].
+      apply SmPar. apply sm_self.
+      eapply int_implecation...
+    + eapply SmAwait...
+Admitted.
 
 
 (* 
