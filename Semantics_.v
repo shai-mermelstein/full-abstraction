@@ -463,8 +463,7 @@ Proof with ellipsis.
       eapply int_implecation 
         with (P' := LP([|c1|]'^)) (Q' := LP([|c2|]'^))
         in H...
-      
-
+      apply sm_closure_int...
     + eapply sm_closure_inner_implication...
   - intros.
     apply CSemantics_stuttery_mumbly.
@@ -509,7 +508,7 @@ Proof with ellipsis.
       apply SmPar. apply sm_self.
       eapply int_implecation...
     + eapply SmAwait...
-Admitted.
+Qed.
 
 
 (* 
