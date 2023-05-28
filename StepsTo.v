@@ -345,3 +345,112 @@ Proof with ellipsis.
   - invert H0...
 Qed.
       
+Lemma asgn_steps_to :
+  forall i a c1 s0 s1,
+    <{i:=a}> / s0 -->* c1 / s1
+      ->
+    (
+      exists a',
+        a / s0 -->a* a'
+          /\
+        c1 = <{i:=a'}>
+          /\
+        s0 = s1
+    )
+      \/
+    (
+      exists (n : nat),
+        a / s0 -->a* n
+          /\
+        c1 = <{skip}>
+          /\
+        s1 = (i |-> n; s0)
+    ).
+Proof with ellipsis.
+  intros.
+  remember (<{i:=a}>, s0) as cf0 eqn:E0.
+  remember (c1, s1) as cf1 eqn:E1.
+  generalize dependent a.
+  induction H; intros; subst...
+  clean_inversion H.
+  - assert ((c1, s1) = (c1, s1))...
+    apply IHmulti with a1' in H... clear IHmulti.
+    destruct H; destruct H...
+  - clean_inversion H0.
+    clean_inversion H.
+Qed.
+
+Lemma seq_steps_to :
+  forall c1 c2 c s0 s1,
+    <{ c1; c2 }> / s0 -->* c / s1
+      ->
+    (
+      (
+        exists c1',
+          c1 / s0 -->* c1' / s1
+            /\
+          c = <{c1'; c2}>
+      )
+        \/
+      (
+        exists s',
+          c1 / s0 -->* <{skip}> / s'
+            /\
+          c2 / s' -->* c / s1
+      )
+    ).
+Proof with eauto.
+  intros.
+  remember (<{ c1; c2 }>, s0) as cf0 eqn:E0.
+  remember (c, s1) as cf1 eqn:E1.
+  generalize dependent s1.
+  generalize dependent s0.
+  generalize dependent c.
+  generalize dependent c2.
+  generalize dependent c1.
+  induction H; intros; subst; try clean_inversion E1.
+  destruct y as [c' s'].
+  clean_inversion H.
+  specialize IHmulti with c1' c2 c s' s1.
+  assert ((<{ c1'; c2 }>, s') = (<{ c1'; c2 }>, s'))...
+  apply IHmulti in H... clear IHmulti.
+  destruct H; destruct H; destruct H; subst...
+Qed.
+
+Lemma if_steps_to :
+  forall b c1 c2 c s0 s1,
+    <{if b then c1 else c2 end}> / s0 -->* c / s1
+      ->
+    (
+      exists b',
+        b / s0 -->b* b'
+          /\
+        c = <{if b' then c1 else c2 end}>
+          /\
+        s1 = s0
+    )
+      \/
+    (
+      b / s0 -->b* <{true}>
+        /\
+      c1 / s0 -->* c / s1
+    )
+      \/
+    (
+      b / s0 -->b* <{false}>
+        /\
+      c2 / s0 -->* c / s1
+    ).
+Proof with eauto.
+  intros.
+  remember (<{ if b then c1 else c2 end }>, s0) 
+    as cf0 eqn:E0.
+  remember (c, s1) as cf1 eqn:E1.
+  generalize dependent b.
+  induction H; intros; subst.
+  - clean_inversion E0.
+  - clean_inversion H.
+    assert ((c, s1) = (c, s1))...
+    apply IHmulti with b1' in H...
+    destruct H; destruct H; destruct H...
+Qed.
