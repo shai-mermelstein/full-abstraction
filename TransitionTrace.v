@@ -839,6 +839,26 @@ Proof with ellipsis.
       induction H...
 Qed.
         
+Lemma bTT_not_substitutive :
+  forall v b ts,
+    bTT v <{~b}> ts
+      <->
+    bTT (negb v) b ts.
+Proof with ellipsis.
+  intros. split; intros.
+  - remember <{~b}> as b0.
+    generalize dependent b.
+    clean_induction H.
+    + apply not_steps_to in H.
+      destruct H.
+      * destruct H as [b' []].
+        destruct v...
+      * destruct H as [v' []].
+        assert (v = negb v').
+        {
+          admit.
+        }
+        subst.
 
 
 
