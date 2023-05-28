@@ -15,6 +15,8 @@ From WS  Require Import Semantics.
 From WS  Require Import StepsTo.
 From WS  Require Import PartialCorrectness.
 From WS  Require Import StateTrace.
+From WS  Require Import ImpBounded.
+
 
 Inductive aTT (n : nat) : aexp -> transitions -> Prop :=
   | aTT_Term :  forall a0 s,
@@ -1178,7 +1180,7 @@ Proof with ellipsis.
 Qed.
 
 Theorem TT_if_substitutive :
-forall c1 c2 b ts,
+  forall c1 c2 b ts,
     TT <{if b then c1 else c2 end}> ts
       <->
     (
@@ -1470,3 +1472,508 @@ Proof with ellipsis.
     eapply sm_closure_inner_implication...
     clear H1 ts. intros ts H1...
 Qed.
+
+(* while + fTT *)
+
+Lemma fTT_equiv_TT :
+  forall c ps,
+    TT c ps <-> exists n, fTT n c ps.
+Proof with ellipsis.
+  intros; split; intros.
+  - induction H.
+    + apply cstep_implies_fstep_0 in H.
+      destruct H as [n]. exists n...
+    + apply cstep_implies_fstep_0 in H.
+      destruct H as [n0]. 
+      destruct IHTT as [n1].
+      exists (n0 + n1).
+      apply fTT_Step with c1 n1...
+      eapply fstep_add_equaly 
+        with (d:=n1) in H...
+  - destruct H as [n].
+    induction H.
+    + apply fstep_implies_cstep in H...
+    + apply fstep_implies_cstep in H...
+Qed.
+
+Theorem fTT_stuttery_mumbly: 
+  forall c n, 
+    stuttery_mumbly (fTT n c).
+Proof with ellipsis.
+  intros c n ts H. induction H...
+  - remember (l1 ++ l2) as l.
+    generalize dependent l1.
+    clean_induction IHstutter_mumble_closure.
+    + destruct l1... invert Heql. destruct l1...
+    + induction l1...
+  - clear H.
+    remember (l1 ++ [(x, y); (y, z)] ++ l2) as l.
+    generalize dependent l1.
+    clean_induction IHstutter_mumble_closure.
+    + destruct l1... invert Heql. destruct l1...
+    + destruct l1... invert Heql. simpl.
+      invert IHstutter_mumble_closure.
+      * eapply fTT_Term. eapply multi_trans...
+      * eapply fTT_Step. eapply multi_trans...
+        auto.
+Qed.
+
+Theorem fTT_if_substitutive :
+  forall c1 c2 b ts n,
+    fTT n <{if b then c1 else c2 end}> ts
+      <->
+    (
+      LP{bTT true b; fTT n c1} ts
+        \/
+      LP{bTT false b; fTT n c2} ts
+    ).
+Proof with ellipsis.
+  intros; split; intros.
+  - remember <{ if b then c1 else c2 end }> as c.
+    generalize dependent b.
+    induction H; intros; subst.
+    + apply f_if_steps_to in H.
+      destruct H as [ |[]].
+      * destruct H as [b' [H []]]...
+      * destruct H. left.
+        rewrite cons_to_app.
+        apply sm_mumbly with s0. simpl.
+        apply sm_self...
+      * destruct H. right.
+        rewrite cons_to_app.
+        apply sm_mumbly with s0. simpl.
+        apply sm_self...
+    + apply f_if_steps_to in H.
+      destruct H as [ |[]].
+      * destruct H as [b' [H []]]. subst.
+        assert (<{ if b' then c1 else c2 end }> 
+          = <{ if b' then c1 else c2 end }>)...
+        clean_apply_in IHfTT H1. destruct H1.
+        -- left.
+          clear H0.
+          induction H1; subst;
+            try rewrite cons_to_app3_assoc_cons...
+          destruct H0 as [l1 [l2 [H0 []]]]. subst.
+          apply sm_self...
+        -- right.
+          clear H0.
+          induction H1; subst;
+            try rewrite cons_to_app3_assoc_cons...
+          destruct H0 as [l1 [l2 [H0 []]]]. subst.
+          apply sm_self...
+      * destruct H. clear IHfTT. left.
+        rewrite cons_to_app.
+        apply sm_mumbly with s0... simpl.
+        apply sm_self. exists [(s0, s0)]...
+      * destruct H. clear IHfTT. right.
+        rewrite cons_to_app.
+        apply sm_mumbly with s0... simpl.
+        apply sm_self. exists [(s0, s0)]...
+  - destruct H.
+    + apply fTT_stuttery_mumbly.
+      eapply sm_closure_inner_implication...
+      clear H ts. 
+      intros ts [ts1 [ts2 [H []]]]. subst.
+      induction H; simpl...
+      * apply fTT_Step with c1 n...
+        simpl in H.
+        remember <{true}> as T.
+        clean_induction H...
+      * eapply fTT_Step; [ |apply IHbTT]...
+        induction H...
+    + apply fTT_stuttery_mumbly.
+      eapply sm_closure_inner_implication...
+      clear H ts. 
+      intros ts [ts1 [ts2 [H []]]]. subst.
+      induction H; simpl...
+      * apply fTT_Step with c2 n...
+        simpl in H.
+        remember <{false}> as T.
+        clean_induction H...
+      * eapply fTT_Step; [ |apply IHbTT]...
+        induction H...
+Qed.
+
+Theorem fTT_seq_substitutive :
+  forall c1 c2 n ts,
+    fTT n <{c1; c2}> ts
+      <->
+    exists n1 n2,
+      n1 + n2 = n
+        /\
+      LP{fTT n1 c1 ; fTT n2 c2} ts.
+Proof with ellipsis.
+  intros. split; intros.
+  - remember <{ c1; c2 }> as c.
+    generalize dependent c2.
+    generalize dependent c1.
+    induction H; intros; subst.
+    + apply f_seq_steps_to in H.
+      destruct H; destruct H; destruct H...
+      destruct H.
+      rename x0 into n2.
+      rename x into s'.
+      exists (n - n2), n2. repeat split...
+      * assert ( n2 <= n)...
+        eapply fstep_n_monotone...
+      * rewrite cons_to_app.
+        apply sm_mumbly with s'. simpl.
+        apply sm_self...
+        exists [(s0, s')]. repeat esplit...
+        replace n2 with (0 + n2) in H...
+        assert (n2 <= n).
+        { eapply fstep_n_monotone... }
+        replace n with ((n - n2) + n2) in H...
+        apply fstep_sub_equaly in H...
+    + rename c1 into c.
+      rename c2 into c1.
+      rename c3 into c2.
+      apply f_seq_steps_to in H.
+      destruct H; destruct H; destruct H...
+      * rename x into c1'.
+        apply IHfTT in H1. 
+        clear IHfTT H0 c.
+        destruct H1 as [n1' [n2 [H1]]].
+        assert (n1 <= n).
+        { eapply fstep_n_monotone... }
+        exists (n1' + (n - n1)), n2.
+        repeat split...
+        induction H0;
+          try rewrite cons_to_app3_assoc_cons...
+        destruct H0 as [l1 [l2 [H3 []]]]. subst.
+        apply sm_self.
+        exists ((s0, s1) :: l1). repeat esplit...
+        apply fTT_Step with c1' n1'...
+        replace (n1' + (n - (n1' + n2)))
+          with (n - n2)...
+        replace n with (n - n2 + n2) in H...
+          apply fstep_sub_equaly in H...
+      * rename x into s'. clear IHfTT.
+        rewrite cons_to_app.
+        destruct H.
+        assert (x0 <= n).
+        { eapply fstep_n_monotone... }
+        exists (n - x0), x0. repeat split...
+        apply sm_mumbly with s'. simpl.
+        apply sm_self.
+        exists [(s0, s')]. repeat esplit...
+        replace x0 with (0 + x0) in H...
+        replace n with ((n - x0) + x0) in H...
+        apply fstep_sub_equaly in H...
+  - destruct H as [n1 [n2 []]].
+    apply fTT_stuttery_mumbly.
+    eapply sm_closure_inner_implication...
+    clear H0 ts. 
+    intros ts [ts1 [ts2 [H1 []]]]. subst.
+    induction H1; simpl...
+    + apply fTT_Step with c2 n2...
+      remember (c0, s0, n) as cf0.
+      remember (<{skip}>, s1, 0) as cf1.
+      generalize dependent n.
+      generalize dependent s0.
+      generalize dependent c0.
+      clean_induction H...
+      destruct y as [[c' s'] n'].
+      apply multi_trans 
+        with (<{c'; c2}>, s', n' + n2)...
+      eapply fstep_add_equaly...
+    + eapply fTT_Step...
+      remember (c0, s0, n) as cf0.
+      remember (c1, s1, n1) as cf1.
+      generalize dependent n.
+      generalize dependent s0.
+      generalize dependent c0.
+      clean_induction H...
+      destruct y as [[c' s'] n'].
+      apply multi_trans 
+        with (<{c'; c2}>, s', n' + n2)...
+      eapply fstep_add_equaly...
+Qed.
+      
+Lemma fTT_while_substitutive :
+  forall n c b ts,
+    fTT n <{while b do c end}> ts
+      ->
+    (bTT false b) ts
+      \/
+    exists nw,
+      nw < n
+        /\
+      LP{
+        (bTT true b ; TT c) 
+        ; 
+        fTT nw <{while b do c end}>
+      } ts.
+Proof with ellipsis.
+  intros.
+  destruct n. 
+  { apply fTT_while_positive in H... }
+  apply f_while_equiv_if_while in H.
+  remember <{while b do c end}> as cwh. 
+  clear Heqcwh.
+  apply fTT_if_substitutive in H.
+  destruct H.
+  - right. 
+    induction H;
+      try destruct IHstutter_mumble_closure 
+        as [nw []];
+      try exists nw...
+    destruct H as [l1 [l2 [H []]]]. subst.
+    apply fTT_seq_substitutive in H0.
+    destruct H0 as [n1 [n2 []]].
+    exists n2. split...
+    assert (
+      forall p l2 l3,
+        l1 ++ l2 ++ [p] ++ l3 
+          =
+        (l1 ++ l2) ++ [p] ++ l3 
+    ).
+    { intros. apply app_assoc. }
+    induction H1;
+      try rewrite H2;
+      try rewrite app_assoc 
+        in IHstutter_mumble_closure...
+    clear H2.
+    destruct H1 as [l2 [l3 [H1 []]]]. subst.
+    apply sm_self. rewrite app_assoc.
+    exists (l1 ++ l2). repeat esplit...
+    apply sm_self. exists l1. repeat esplit...
+    apply fTT_equiv_TT...
+  - left.
+    apply bTT_stuttery_mumbly.
+    induction H...
+    apply sm_self.
+    destruct H as [l1 [l2 [H []]]]. subst.
+    induction H; simpl in *...
+    eapply bTT_Step...
+    remember <{skip}> as c'.
+    clean_induction H0;
+      solve_by_inverts 2.
+Qed.
+
+Lemma while_equiv_if_while :
+  forall b c ps,
+    TT <{while b do c end}> ps
+      <->
+    TT <{if b then c; while b do c end else skip end}> ps.
+Proof with ellipsis.
+  intros; split; intros.
+  - induction ps... solve_by_inverts 3.
+  - induction ps...
+Qed.
+      
+Theorem TT_while_substitutive :
+  forall b c ts,
+    TT <{while b do c end}> ts
+      <->
+    LP{(bTT true b; TT c)* ; bTT false b} ts.
+Proof with ellipsis.
+  intros; split; intros.
+  - apply fTT_equiv_TT in H. destruct H as [N].
+    remember N as n.
+    assert (n <= N)... clear Heqn.
+    generalize dependent ts.
+    generalize dependent n.
+    induction N; intros.
+    { apply fTT_while_positive in H... }
+    apply fTT_while_substitutive in H. 
+    destruct H.
+    + replace ts with ([] ++ ts)...
+      apply sm_self...
+    + destruct H as [m []].
+      assert (m <= N)... clear H H0 n.
+      induction H1...
+      destruct H as [l1 [l2 [H []]]]. subst.
+      clean_apply_in IHN H0.
+      assert (
+        forall p l2 l3,
+          l1 ++ l2 ++ [p] ++ l3 
+            =
+          (l1 ++ l2) ++ [p] ++ l3 
+      ).
+      { intros. apply app_assoc. }
+      induction H0;
+        try rewrite H1;
+        try rewrite app_assoc 
+          in IHstutter_mumble_closure...
+      clear H1.
+      destruct H0 as [l2 [l3 [H0 []]]]. subst.
+      rewrite app_assoc.
+      apply sm_self...
+  - apply TT_stuttery_mumbly.
+    eapply sm_closure_inner_implication...
+    clear. intros ts [ts1 [ts2 [H []]]]. subst.
+    induction H.
+    + apply while_equiv_if_while.
+      remember <{c; while b do c end}> as c'.
+      clear Heqc'.
+      induction H0; simpl in *.
+      * apply TT_Term.
+        remember <{false}> as F.
+        clean_induction H...
+      * apply TT_Step
+          with <{if b1 then c' else skip end}>...
+        induction H...
+    + apply TT_stuttery_mumbly.
+      induction H;
+        try repeat rewrite <- app_assoc in *...
+      apply sm_self.
+      destruct H as [l' [l'' [H []]]]. subst.
+      repeat rewrite <- app_assoc in *.
+      apply while_equiv_if_while.
+      remember b as b'.
+      replace <{while b' do c end}>
+        with <{while b do c end}> in *...
+      replace (bTT true b')
+        with (bTT true b) in H1...
+      rewrite Heqb' in H0.
+      clear Heqb'.
+      induction H...
+      * apply TT_Step
+          with <{c; while b do c end}>.
+        -- remember (bool_bexp true) as T.
+          simpl in HeqT.
+          clear H1 IHstarP H0 H2.
+          clean_induction H...
+        -- apply TT_seq_substitutive.
+          apply sm_self...
+      * repeat rewrite <- app_assoc in *.
+        apply TT_Step
+          with <{
+            if b1 then 
+              c; while b do c end
+            else
+              skip
+            end
+          }>...
+        clear IHbTT IHstarP H1 H0 H3 H2.
+        induction H...
+Qed.
+
+(* TT semantics equiv *)
+
+Theorem TT_equiv_Semantics :
+  forall c,
+  TT c ~ [|c|].
+Proof with ellipsis.
+  intros c ts. split; intros.
+  - generalize dependent ts.
+    clean_induction c.
+    + remember <{skip}> as c.
+      clean_induction H;
+        invert H...
+      * eapply SmSkip. apply sm_self...
+      * apply CSemantics_stuttery_mumbly.
+        rewrite cons_to_app...
+    + apply TT_asgn_substitutive in H.
+      destruct H as [n [s]].
+      apply CSemantics_stuttery_mumbly.
+      induction H...
+      destruct H as [l1 [l2 [H []]]].
+      subst. invert H0.
+      apply aTT_equiv_semantics in H.
+      apply sm_self. 
+      eapply SmAsgn. eapply sm_self...
+    + apply TT_seq_substitutive in H.
+      apply CSemantics_stuttery_mumbly.
+      induction H... apply sm_self.
+      destruct H as [l1 [l2 [H []]]]. subst.
+      clean_apply_in IHc1 H.
+      clean_apply_in IHc2 H0.
+      apply SmSeq. apply sm_self...
+    + apply TT_if_substitutive in H.
+      destruct H.
+      * apply CSemantics_stuttery_mumbly.
+        induction H... apply sm_self.
+        destruct H as [l1 [l2 [H []]]]. subst.
+        apply bTT_equiv_semantics in H.
+        clean_apply_in IHc1 H0.
+        apply SmIfTrue. apply sm_self...
+      * apply CSemantics_stuttery_mumbly.
+        induction H... apply sm_self.
+        destruct H as [l1 [l2 [H []]]]. subst.
+        apply bTT_equiv_semantics in H.
+        clean_apply_in IHc2 H0.
+        apply SmIfFalse. apply sm_self...
+    + apply TT_while_substitutive in H.
+      apply CSemantics_stuttery_mumbly.
+      induction H... apply sm_self.
+      destruct H as [l1 [lw [H []]]]. subst.
+      apply bTT_equiv_semantics in H0.
+      apply SmWhile. apply sm_self.
+      exists l1. repeat esplit...
+      eapply star_implecation...
+      apply sm_closure_inner_implication.
+      clear H l1 H0. 
+      intros l [l1 [l2 [H []]]]. subst.
+      apply bTT_equiv_semantics in H...
+    + apply TT_par_substitutive in H.
+      apply CSemantics_stuttery_mumbly.
+      induction H... apply sm_self.
+      destruct H as [l1 [lw [H []]]]. subst.
+      apply SmPar. apply sm_self...
+    + apply TT_await_substitutive in H.
+      destruct H as [s0 [s1 [H []]]].
+      eapply SmAwait...
+      apply bTT_equiv_semantics...
+  - generalize dependent ts.
+    clean_induction c; invert H.
+    + apply TT_stuttery_mumbly.
+      induction H0... 
+    + apply TT_stuttery_mumbly.
+      induction H3... apply sm_self.
+      destruct H as [l1 [l2 [H []]]]. subst.
+      apply TT_asgn_substitutive.
+      apply aTT_equiv_semantics in H. 
+      exists n, s. apply sm_self...
+    + apply TT_stuttery_mumbly.
+      induction H3... apply sm_self.
+      destruct H as [l1 [l2 [H []]]]. subst.
+      clean_apply_in IHc1 H.
+      clean_apply_in IHc2 H0.
+      apply TT_seq_substitutive.
+      apply sm_self...
+    + apply TT_stuttery_mumbly.
+      induction H4... apply sm_self.
+      destruct H as [l1 [l2 [H []]]]. subst.
+      apply bTT_equiv_semantics in H.
+      clean_apply_in IHc1 H0.
+      apply TT_if_substitutive. left.
+      apply sm_self...
+    + apply TT_stuttery_mumbly.
+      induction H4... apply sm_self.
+      destruct H as [l1 [l2 [H []]]]. subst.
+      apply bTT_equiv_semantics in H.
+      clean_apply_in IHc2 H0.
+      apply TT_if_substitutive. right.
+      apply sm_self...
+    + apply TT_stuttery_mumbly.
+      induction H3... apply sm_self.
+      destruct H as [l1 [l2 [H []]]]. subst.
+      apply bTT_equiv_semantics in H0.
+      apply TT_while_substitutive.
+      apply sm_self.
+      exists l1. repeat esplit...
+      eapply star_implecation...
+      clear H l1 H0 l2.
+      apply sm_closure_inner_implication. 
+      intros l [l1 [l2 [H []]]]. subst.
+      apply bTT_equiv_semantics in H.
+      clean_apply_in IHc H0...
+    + apply TT_stuttery_mumbly.
+      induction H3... apply sm_self.
+      destruct H as [l1 [l2 [H []]]]. subst.
+      clean_apply_in IHc1 H.
+      clean_apply_in IHc2 H0.
+      apply TT_par_substitutive.
+      apply sm_self...
+    + apply bTT_equiv_semantics in H2.
+      clean_apply_in IHc H3.
+      invert H2... invert H3...
+      apply TT_await_substitutive...
+Qed.
+
+      
+
+
+
