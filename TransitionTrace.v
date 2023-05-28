@@ -31,9 +31,6 @@ Inductive aTT (n : nat) : aexp -> transitions -> Prop :=
     aTT n a0 ((s, s) :: ts).
 #[global] Hint Constructors aTT : core.
 
-Definition bool_bexp (v : bool) : bexp :=
-  if v then <{true}> else <{false}>.
-
 Inductive bTT v : bexp -> transitions -> Prop :=
   | bTT_Term :  forall b0 s,
     b0 / s -->b* (bool_bexp v)
@@ -157,6 +154,8 @@ Proof with ellipsis.
       * eapply TT_Step. eapply multi_trans...
         auto.
 Qed.
+
+(* aTT equiv Semantics *)
 
 Lemma aTT_equiv_semantics_num :
   forall n m,
@@ -606,94 +605,336 @@ Proof with ellipsis.
       apply sm_self...
 Qed.
       
-      
+(* bTT equiv Semantics *)
 
-
-(* 
-Lemma plus_steps_to :
-  forall a1 a2 a s,
-    <{a1 + a2}> / s -->a* a
-      ->
+Lemma bTT_eq_substitutive :
+  forall v a1 a2 ts,
+    bTT v <{a1 = a2}> ts
+      <->
     (
-      exists a1',
-        a1 / s -->* a1'
+      exists n1 n2,
+        LP{(aTT n1 a1) ; (aTT n2 a2)} ts
           /\
-        a = <{a1' + a2}>
-    )
-      \/
-    (
-      exists n1 a2',
-        a1 / s -->* n1
-          /\
-        a2 / s -->* n2
-          /\
-        a = <{a1' + a2}>
-    )
-
-Lemma aTT_equiv_semantics_plus :
-  forall n a1 a2,
-    aTT n <{a1 + a2}> ~ [|a1 + a2 -> n|].
+        v = (n1 =? n2)%nat
+    ).
 Proof with ellipsis.
-  intros n a1 a2 ts. split; intros.
+  intros. split; intros.
+  - remember <{a1 = a2}> as b.
+    generalize dependent a2.
+    generalize dependent a1.
+    clean_induction H.
+    + apply eq_steps_to in H.
+      destruct H as [ |[]].
+      * destruct H as [a1' []]. 
+        destruct v...
+        Unshelve. 
+          apply O. apply O. apply O. apply O.
+      * destruct H as [n1 [a2' [H []]]].
+        destruct v...
+        Unshelve. 
+          apply O. apply O. apply O. apply O.
+      * destruct H as [n1 [n2 [H []]]].
+        exists n1, n2. split.
+        -- apply mumble_1_stutter.
+          apply sm_self...
+        -- destruct (n1 =? n2)%nat;
+          destruct v...
+    + apply eq_steps_to in H.
+      destruct H as [ |[]].
+      * destruct H as [a1' []].
+        clean_apply_in IHbTT H1.
+        destruct H1 as [n1 [n2 []]].
+        exists n1, n2. split...
+        clear H0 H2.
+        induction H1;
+          try rewrite cons_to_app3_assoc_cons...
+        destruct H0 as [l1 [l2 [H0 []]]].
+        apply sm_self...
+      * destruct H as [n1 [a2' [H []]]].
+        clean_apply_in IHbTT H2.
+        destruct H2 as [n1' [n2 []]].
+        assert (n1 = n1'); subst.
+        {
+          remember (aTT n2 a2') as P.
+          clear H H0 H1 a1 a2 s b1 
+            HeqP n2 a2'.
+          induction H2...
+          destruct H as [l1 [_ [H _]]].
+          remember (ANum n1) as a.
+          clean_induction H;
+            solve_by_inverts 2.
+        }
+        exists n1', n2. split...
+        clear H0.
+        induction H2;
+          try rewrite cons_to_app3_assoc_cons...
+        rewrite cons_to_app.
+        apply sm_mumbly with s.
+        apply sm_self.
+        simpl.
+        exists [(s, s)]. repeat esplit...
+        apply aTT_Step with a2'...
+        clear H H1 a1 s b1.
+        destruct H0 as [l1 [l2 [H []]]].
+        subst. induction l1... simpl.
+        solve_by_inverts 3.
+      * clear IHbTT.
+        destruct H as [n1 [n2 [H []]]].
+        assert (v = (n1 =? n2)%nat); subst.
+        {
+          clear H H1 a1 a2.
+          destruct (n1 =? n2)%nat;
+            destruct v; ellipsis; 
+            exfalso; simpl in *.
+          - remember <{true}> as T.
+            clean_induction H0; 
+              solve_by_inverts 2.
+          - remember <{false}> as F.
+            clean_induction H0; 
+              solve_by_inverts 2.
+        }
+        exists n1, n2. split...
+        rewrite cons_to_app.
+        apply sm_mumbly with s. simpl.
+        apply sm_self. 
+        exists [(s, s)]. repeat esplit...
+        eapply aTT_Step...
+        remember (n1 =? n2)%nat as v.
+        clear H H1 Heqv.
+        remember (bool_bexp v) as b.
+        clean_induction H0.
+        eapply aTT_Step... apply IHbTT.
+        destruct v; solve_by_inverts 2.
+  - destruct H as [n1 [n2 []]].
+    apply bTT_stuttery_mumbly.
+    eapply sm_closure_inner_implication...
+    clear H ts. 
+    intros ts [ts1 [ts2 [H []]]]. subst.
+    induction H.
+    + simpl. apply bTT_Step with <{n1 = a2}>.
+      * clear H1. induction H...
+      * clear H. induction H1...
+        -- apply bTT_Term.
+          remember (ANum n2) as a2.
+          clean_induction H...
+        -- apply bTT_Step with <{n1 = a2}>...
+          induction H...
+    + simpl. apply bTT_Step with <{a1 = a2}>...
+      induction H...
+Qed.
+
+Lemma bTT_le_substitutive :
+  forall v a1 a2 ts,
+    bTT v <{a1 <= a2}> ts
+      <->
+    (
+      exists n1 n2,
+        LP{(aTT n1 a1) ; (aTT n2 a2)} ts
+          /\
+        v = (n1 <=? n2)%nat
+    ).
+Proof with ellipsis.
+  intros. split; intros.
+  - remember <{a1 <= a2}> as b.
+    generalize dependent a2.
+    generalize dependent a1.
+    clean_induction H.
+    + apply le_steps_to in H.
+      destruct H as [ |[]].
+      * destruct H as [a1' []]. 
+        destruct v...
+        Unshelve. 
+          apply O. apply O. apply O. apply O.
+      * destruct H as [n1 [a2' [H []]]].
+        destruct v...
+        Unshelve. 
+          apply O. apply O. apply O. apply O.
+      * destruct H as [n1 [n2 [H []]]].
+        exists n1, n2. split.
+        -- apply mumble_1_stutter.
+          apply sm_self...
+        -- destruct (n1 <=? n2)%nat;
+          destruct v...
+    + apply le_steps_to in H.
+      destruct H as [ |[]].
+      * destruct H as [a1' []].
+        clean_apply_in IHbTT H1.
+        destruct H1 as [n1 [n2 []]].
+        exists n1, n2. split...
+        clear H0 H2.
+        induction H1;
+          try rewrite cons_to_app3_assoc_cons...
+        destruct H0 as [l1 [l2 [H0 []]]].
+        apply sm_self...
+      * destruct H as [n1 [a2' [H []]]].
+        clean_apply_in IHbTT H2.
+        destruct H2 as [n1' [n2 []]].
+        assert (n1 = n1'); subst.
+        {
+          remember (aTT n2 a2') as P.
+          clear H H0 H1 a1 a2 s b1 
+            HeqP n2 a2'.
+          induction H2...
+          destruct H as [l1 [_ [H _]]].
+          remember (ANum n1) as a.
+          clean_induction H;
+            solve_by_inverts 2.
+        }
+        exists n1', n2. split...
+        clear H0.
+        induction H2;
+          try rewrite cons_to_app3_assoc_cons...
+        rewrite cons_to_app.
+        apply sm_mumbly with s.
+        apply sm_self.
+        simpl.
+        exists [(s, s)]. repeat esplit...
+        apply aTT_Step with a2'...
+        clear H H1 a1 s b1.
+        destruct H0 as [l1 [l2 [H []]]].
+        subst. induction l1... simpl.
+        solve_by_inverts 3.
+      * clear IHbTT.
+        destruct H as [n1 [n2 [H []]]].
+        assert (v = (n1 <=? n2)%nat); subst.
+        {
+          clear H H1 a1 a2.
+          destruct (n1 <=? n2)%nat;
+            destruct v; ellipsis; 
+            exfalso; simpl in *.
+          - remember <{true}> as T.
+            clean_induction H0; 
+              solve_by_inverts 2.
+          - remember <{false}> as F.
+            clean_induction H0; 
+              solve_by_inverts 2.
+        }
+        exists n1, n2. split...
+        rewrite cons_to_app.
+        apply sm_mumbly with s. simpl.
+        apply sm_self. 
+        exists [(s, s)]. repeat esplit...
+        eapply aTT_Step...
+        remember (n1 <=? n2)%nat as v.
+        clear H H1 Heqv.
+        remember (bool_bexp v) as b.
+        clean_induction H0.
+        eapply aTT_Step... apply IHbTT.
+        destruct v; solve_by_inverts 2.
+  - destruct H as [n1 [n2 []]].
+    apply bTT_stuttery_mumbly.
+    eapply sm_closure_inner_implication...
+    clear H ts. 
+    intros ts [ts1 [ts2 [H []]]]. subst.
+    induction H.
+    + simpl. apply bTT_Step with <{n1 <= a2}>.
+      * clear H1. induction H...
+      * clear H. induction H1...
+        -- apply bTT_Term.
+          remember (ANum n2) as a2.
+          clean_induction H...
+        -- apply bTT_Step with <{n1 <= a2}>...
+          induction H...
+    + simpl. apply bTT_Step with <{a1 <= a2}>...
+      induction H...
+Qed.
+        
+
+
+
+(*
+intros n a1 a2 ts. split; intros.
   - remember <{a1 + a2}> as a.
     generalize dependent a2.
     generalize dependent a1.
     clean_induction H.
-    + admit.
-    + 
-
-
-
-Theorem aTT_equiv_semantics :
-  forall n a,
-    aTT n a ~ [|a -> n|].
-Proof with ellipsis.
-  intros n a ts. split; intros.
-  - induction a.
-    + remember (ANum n0) as a. 
-      assert (n0 = n).
-      { induction H; invert H... } 
-      rewrite H0 in *. clear H0. 
-      clean_induction H.
-      * eapply SmNum. apply sm_self...
-      * invert H...
-        apply ASemantics_stuttery_mumbly.
-        rewrite cons_to_app...
-    + remember (AId i) as a.
-      clean_induction H.
-      * invert H. invert H0.
-        invert H1...
-        eapply SmId. apply sm_self...
-      * invert H.
-        -- apply ASemantics_stuttery_mumbly.
-          rewrite cons_to_app...
-        -- invert H1.
-          assert (a1 = n).
-          {
-
-          }
-          eapply SmId. with s.
-      
-
-
-      assert (n0 = n).
-      { induction H; invert H... } 
-      rewrite H0 in *. clear H0. 
-      clean_induction H.
-      * eapply SmNum. apply sm_self...
-      * invert H...
-        apply ASemantics_stuttery_mumbly.
-        rewrite cons_to_app...
-       
-      induction H.
-      * clean_induction H...
-        apply SMNum
-    
-    
+    + apply plus_steps_to in H.
+      destruct H; [ |destruct H].
+      * destruct H as [a1' []]...
+      * destruct H as [n1 [a2' [H []]]]...
+      * destruct H as [n1 [n2 [H []]]].
+        exists n1, n2. repeat split...
+        apply mumble_1_stutter.
+        apply sm_self...
+    + apply plus_steps_to in H.
+      destruct H; [ |destruct H].
+      * destruct H as [a1' []].
+        clean_apply_in IHaTT H1.
+        destruct H1 as [n1 [n2 []]].
+        exists n1, n2. repeat split...
+        clear H0 H2 n.
+        clean_induction H1; 
+          try rewrite cons_to_app3_assoc_cons...
+        destruct H0 as [l1 [l2 [H0 []]]].
+        apply sm_self. 
+        exists ((s, s) :: l1), l2... 
+      * destruct H as [n1 [a2' [H []]]].
+        clean_apply_in IHaTT H2.
+        destruct H2 as [n1' [n2 []]].
+        assert (n1 = n1').
+        {
+          remember (aTT n2 a2') as P.
+          clear H H1 H3 H0 
+            HeqP n a1 a2 a3 a2' n2 s.
+          induction H2...
+          destruct H as [l1 [_ [H _]]].
+          remember (ANum n1) as a.
+          clean_induction H; solve_by_inverts 2.
+        }
+        subst.
+        exists n1', n2. repeat split...
+        rewrite cons_to_app.
+        apply sm_mumbly with s. simpl.
+        apply sm_self.
+        exists [(s, s)], ((s, s) :: ts).
+        repeat split...
+        clear H0 a1 H a2.
+        apply aTT_stuttery_mumbly.
+        clean_induction H2; 
+          try rewrite cons_to_app3_assoc_cons...
+        destruct H as [l1 [l2 [H []]]]. subst.
+        apply sm_self.
+        apply aTT_Step with a2'... clear H1.
+        induction l1... simpl.
+        invert H.
+        apply aTT_Step with a2'...
+        apply IHl1.
+        solve_by_inverts 2.
+      * clear IHaTT.
+        destruct H as [n1 [n2 [H []]]].
+        assert (n = n1 + n2); subst.
+        {
+          clear H H1.
+          remember (ANum (n1 + n2)) as a.
+          clean_induction H0;
+            solve_by_inverts 2.
+        }
+        exists n1, n2. repeat split...
+        rewrite cons_to_app.
+        apply sm_mumbly with s. simpl.
+        apply sm_self.
+        exists [(s, s)], ((s, s) :: ts).
+        repeat split...
+        apply aTT_Step with n2...
+        clear H H1.
+        remember (ANum (n1 + n2)) as a.
+        clean_induction H0.
+        eapply aTT_Step... apply IHaTT.
+        solve_by_inverts 2.
+  - destruct H as [n1 [n2 []]].
+    apply aTT_stuttery_mumbly.
+    eapply sm_closure_inner_implication...
+    clear H ts. 
+    intros ts [ts1 [ts2 [H []]]]. subst.
     induction H.
-    + induction a0.
-      * remember n0 as a.
-        induction H.
-         eapply SmNum. 
-
- *)
+    + simpl. apply aTT_Step with <{n1 + a2}>.
+      * clear H1. induction H...
+      * clear H. induction H1...
+        -- apply aTT_Term.
+          remember (ANum n2) as a2.
+          clean_induction H...
+        -- apply aTT_Step with <{n1 + a2}>...
+          induction H...
+    + simpl. apply aTT_Step with <{a1 + a2}>...
+      induction H...
+*)
