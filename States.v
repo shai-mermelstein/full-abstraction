@@ -20,6 +20,9 @@ Axiom ieq_iff_eq :
   forall i j,
     i =? j = true <-> i = j.
 
+Parameter dom : identifiers.
+Axiom dom_full : Full dom.
+
 Parameter X : identifier.
 Parameter Y : identifier.
 Parameter Z : identifier.
@@ -43,12 +46,6 @@ Definition transition : Type := state * state.
 Definition transitions := list transition.
 #[global] Hint Transparent transition transitions : core.
 
-Parameter dom : identifiers.
-Axiom states_equal_by_dom : 
-  forall (s s' : state), 
-    s = s' 
-      <-> 
-    forall i, i <: dom -> s i = s' i.
 
 (* claims *)
 
@@ -75,6 +72,18 @@ Proof with ellipsis.
   - apply ieq_iff_neq in E...
 Qed.
 
+Lemma in_identifiers_dec :
+  forall (i : identifier) is,
+    i <: is \/ i /: is.
+Proof with ellipsis.
+  intros. induction is as [ |j]...
+  destruct IHis...
+  assert (i = j \/ i <> j)
+    by apply identifier_eq_dec.
+  destruct H0...
+  right. intros []...
+Qed.
+
 Lemma update_s_eq :
   forall s i n,
     (i |-> n; s) i = n.
@@ -96,10 +105,21 @@ Proof with ellipsis.
   rewrite H...
 Qed. 
 
-(* Lemma states_equal :
+Lemma states_equal_by_dom : 
+  forall (s s' : state), 
+    s = s' 
+      <-> 
+    forall i, i <: dom -> s i = s' i.
+Proof with ellipsis.
+  intros. split; intros...
+  apply functional_extensionality. intros j.
+  apply H. apply dom_full.
+Qed.
+
+Lemma states_equal :
   forall (s1 s2 : state),
     s1 = s2 <-> forall v, s1 v = s2 v.
 Proof with ellipsis.
   intros. split; intros...
   apply functional_extensionality...
-Qed. *)
+Qed.

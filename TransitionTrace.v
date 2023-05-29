@@ -16,7 +16,6 @@ From WS  Require Import StepsTo.
 From WS  Require Import PartialCorrectness.
 From WS  Require Import StateTrace.
 
-
 Inductive aTT (n : nat) : aexp -> transitions -> Prop :=
   | aTT_Term :  forall a0 s,
     a0 / s -->a* n
@@ -55,6 +54,20 @@ Inductive TT : com -> transitions -> Prop :=
       ->
     TT c0 ((s0, s1) :: ts).
 #[global] Hint Constructors TT : core.
+
+Definition TTorder c c' :=
+  forall ps, TT c ps -> TT c' ps.
+Notation " c '<tt' c'" := 
+  (TTorder c c') (at level 50).
+Definition TTequivalence c c' :=
+  c <tt c' /\ c' <tt c.
+Notation " c '=tt' c'" := 
+  (TTequivalence c c') (at level 50).
+Notation " c '~=tt' c'" := 
+  (~(c =tt c')) (at level 50).
+#[global] Hint Unfold TTorder TTequivalence : core.
+
+(* auxiliary definitions *)
 
 Fixpoint trace_to_tt (ss : list state) :=
   match ss with

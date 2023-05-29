@@ -35,7 +35,7 @@ Proof with ellipsis.
       rewrite cons_to_app...
   - invert H.
     apply aTT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear. intros ts H...
 Qed.
 
@@ -71,7 +71,7 @@ Proof with ellipsis.
             with ([t] ++ [(s0, s0)] ++ ts)...
   - invert H.
     apply aTT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear. intros ts H...
 Qed.
 
@@ -166,7 +166,7 @@ Proof with ellipsis.
         solve_by_inverts 2.
   - destruct H as [n1 [n2 []]].
     apply aTT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear H ts. 
     intros ts [ts1 [ts2 [H []]]]. subst.
     induction H.
@@ -275,7 +275,7 @@ Proof with ellipsis.
         solve_by_inverts 2.
   - destruct H as [n1 [n2 []]].
     apply aTT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear H ts. 
     intros ts [ts1 [ts2 [H []]]]. subst.
     induction H.
@@ -384,7 +384,7 @@ Proof with ellipsis.
         solve_by_inverts 2.
   - destruct H as [n1 [n2 []]].
     apply aTT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear H ts. 
     intros ts [ts1 [ts2 [H []]]]. subst.
     induction H.
@@ -413,7 +413,7 @@ Proof with ellipsis.
     + apply aTT_plus_substitutive in H.
       destruct H as [n1 [n2 []]].
       apply ASemantics_stuttery_mumbly.
-      eapply sm_closure_inner_implication;
+      eapply sm_closure_implication;
         [ |apply H].
       clear H ts. 
       intros ts [ts1 [ts2 [H []]]]. subst.
@@ -423,7 +423,7 @@ Proof with ellipsis.
     + apply aTT_minus_substitutive in H.
       destruct H as [n1 [n2 []]].
       apply ASemantics_stuttery_mumbly.
-      eapply sm_closure_inner_implication;
+      eapply sm_closure_implication;
         [ |apply H].
       clear H ts. 
       intros ts [ts1 [ts2 [H []]]]. subst.
@@ -433,7 +433,7 @@ Proof with ellipsis.
     + apply aTT_mult_substitutive in H.
       destruct H as [n1 [n2 []]].
       apply ASemantics_stuttery_mumbly.
-      eapply sm_closure_inner_implication;
+      eapply sm_closure_implication;
         [ |apply H].
       clear H ts. 
       intros ts [ts1 [ts2 [H []]]]. subst.
@@ -442,7 +442,7 @@ Proof with ellipsis.
       apply SmMult. apply sm_self...
   - apply ASemantics_equiv' in H.
     apply aTT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear. intros ts H.
     generalize dependent ts.
     generalize dependent n.
@@ -569,7 +569,7 @@ Proof with ellipsis.
         destruct v; solve_by_inverts 2.
   - destruct H as [n1 [n2 []]].
     apply bTT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear H ts. 
     intros ts [ts1 [ts2 [H []]]]. subst.
     induction H.
@@ -685,7 +685,7 @@ Proof with ellipsis.
         destruct v; solve_by_inverts 2.
   - destruct H as [n1 [n2 []]].
     apply bTT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear H ts. 
     intros ts [ts1 [ts2 [H []]]]. subst.
     induction H.
@@ -797,7 +797,7 @@ Proof with ellipsis.
       * apply bTT_Step with <{b1 && b2}>...
         induction H...
     + apply bTT_stuttery_mumbly.
-      eapply sm_closure_inner_implication...
+      eapply sm_closure_implication...
       clear ts H. 
       intros ts [ts1 [ts2 [H []]]]. subst.
       induction H; simpl in *.
@@ -834,7 +834,7 @@ Proof with ellipsis.
     + apply bTT_eq_substitutive in H.
       destruct H as [n1 [n2 []]].
       apply BSemantics_stuttery_mumbly.
-      eapply sm_closure_inner_implication;
+      eapply sm_closure_implication;
         [ |apply H].
       clear H ts. 
       intros ts [ts1 [ts2 [H []]]]. subst.
@@ -844,7 +844,7 @@ Proof with ellipsis.
     + apply bTT_le_substitutive in H.
       destruct H as [n1 [n2 []]].
       apply BSemantics_stuttery_mumbly.
-      eapply sm_closure_inner_implication;
+      eapply sm_closure_implication;
         [ |apply H].
       clear H ts. 
       intros ts [ts1 [ts2 [H []]]]. subst.
@@ -860,14 +860,14 @@ Proof with ellipsis.
       destruct H as [[]| ]; subst.
       * apply SmAndFalse...
       * apply SmAndTrue...
-        eapply sm_closure_inner_implication...
+        eapply sm_closure_implication...
         clear H ts.
         intros ts [ts1 [ts2 [H []]]]. subst.
         clean_apply_in IHb1 H.
         clean_apply_in IHb2 H0...
   - apply BSemantics_equiv' in H.
     apply bTT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear. intros ts H.
     generalize dependent ts.
     generalize dependent v.
@@ -976,7 +976,7 @@ intros; split; intros.
             ([(s0, s0); (s0, i |-> n; s0)] ++ [(s2, s2)] ++ ts)...
   - destruct H as [n [s]].
     apply TT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear. intros ts [ts1 [ts2 [H []]]].
     invert H0.
     induction H.
@@ -1022,7 +1022,7 @@ Proof with ellipsis.
         apply sm_self.
         exists [(s0, s')]. esplit...
   - apply TT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear H ts. 
     intros ts [ts1 [ts2 [H []]]]. subst.
     induction H; simpl...
@@ -1094,7 +1094,7 @@ Proof with ellipsis.
         apply sm_self. exists [(s0, s0)]...
   - destruct H.
     + apply TT_stuttery_mumbly.
-      eapply sm_closure_inner_implication...
+      eapply sm_closure_implication...
       clear H ts. 
       intros ts [ts1 [ts2 [H []]]]. subst.
       induction H; simpl...
@@ -1105,7 +1105,7 @@ Proof with ellipsis.
       * eapply TT_Step; [ |apply IHbTT]...
         induction H...
     + apply TT_stuttery_mumbly.
-      eapply sm_closure_inner_implication...
+      eapply sm_closure_implication...
       clear H ts. 
       intros ts [ts1 [ts2 [H []]]]. subst.
       induction H; simpl...
@@ -1200,7 +1200,7 @@ Proof with ellipsis.
           apply int_cons1.
           induction ts...
   - apply TT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear. intros ts [ts1 [ts2 [H []]]]. subst.
     generalize dependent c2.
     generalize dependent c1.
@@ -1331,7 +1331,7 @@ Proof with ellipsis.
             with ([(s0, s1)] ++ [(s3, s3)] ++ ts)...
   - destruct H as [s0 [s1 [H []]]].
     apply TT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear H1 ts. intros ts H1...
 Qed.
 
@@ -1385,7 +1385,7 @@ Proof with ellipsis.
       rewrite app_assoc.
       apply sm_self...
   - apply TT_stuttery_mumbly.
-    eapply sm_closure_inner_implication...
+    eapply sm_closure_implication...
     clear. intros ts [ts1 [ts2 [H []]]]. subst.
     induction H.
     + apply while_equiv_if_while.
@@ -1485,7 +1485,7 @@ Proof with ellipsis.
       apply SmWhile. apply sm_self.
       exists l1. repeat esplit...
       eapply star_implecation...
-      apply sm_closure_inner_implication.
+      apply sm_closure_implication.
       clear H l1 H0. 
       intros l [l1 [l2 [H []]]]. subst.
       apply bTT_equiv_semantics in H...
@@ -1538,7 +1538,7 @@ Proof with ellipsis.
       exists l1. repeat esplit...
       eapply star_implecation...
       clear H l1 H0 l2.
-      apply sm_closure_inner_implication. 
+      apply sm_closure_implication. 
       intros l [l1 [l2 [H []]]]. subst.
       apply bTT_equiv_semantics in H.
       clean_apply_in IHc H0...
