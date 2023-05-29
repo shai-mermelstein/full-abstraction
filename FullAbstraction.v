@@ -17,6 +17,7 @@ From WS  Require Import STequivPC.
 From WS  Require Import PartialCorrectness.
 From WS  Require Import TransitionTrace.
 From WS  Require Import TTequivSemantics.
+From WS  Require Import Contexts.
 
 (* auxiliary destinations *)
 
@@ -200,3 +201,84 @@ Proof with ellipsis.
           in H0...
     + destruct ts as [ |[s1 s1'] ts]...
 Qed.
+
+Theorem Semantics_substitutive :
+  forall c c' cxt,
+    [|c|] |= [|c'|]
+      ->
+    [|plug cxt c|] |= [|plug cxt c'|].
+Proof with ellipsis.
+  intros.
+  clean_induction cxt; 
+    intros l H0; invert H0;
+    apply CSemantics_stuttery_mumbly;
+    (eapply sm_closure_implication; [ |eauto]);
+    try (clear H4 l; 
+      intros l [l1 [l2 [H0 []]]]; subst);
+    try (clear H5 l; 
+      intros l [l1 [l2 [H0 []]]]; subst).
+  + apply SmSeq. apply sm_self...
+  + apply SmSeq. apply sm_self...
+  + apply SmIfTrue. apply sm_self...
+  + apply SmIfFalse. apply sm_self...
+  + apply SmIfTrue. apply sm_self...
+  + apply SmIfFalse. apply sm_self...
+  + apply SmWhile. apply sm_self.
+    exists l1. repeat esplit... clear H1 l2.
+    eapply star_implication; [ |eauto].
+    clear H0 l1. intros l H0.
+    eapply sm_closure_implication; [ |eauto].
+    clear H0 l. intros l [l1 [l2 [H0 []]]]...
+  + apply SmPar. apply sm_self...
+  + apply SmPar. apply sm_self...
+  + clear H6 l. intros l H0. invert H0.
+    eapply SmAwait... apply sm_self...
+Qed.
+
+Theorem Semantics_equiv_ST: 
+  forall c c', 
+    [|c|] |= [|c'|] <-> c <pc c'.
+Proof with ellipsis.
+  unfold "<pc", "[pc".
+  intros; split; intros; intros t H0.
+  - rewrite PC_from_TT in *.
+    apply TT_equiv_Semantics.
+    apply TT_equiv_Semantics in H0.
+    eapply Semantics_substitutive...
+  - destruct t as [ |t0 ts].
+    {  apply nil_not_in_CSemantics in H0... }
+    apply TT_equiv_Semantics.
+    apply TT_equiv_Semantics in H0.
+    destruct ts as [ |t' ts'].
+    { 
+      apply PC_from_TT.
+      apply PC_from_TT in H0.
+      specialize H with CXTHole...
+    }
+    assert (
+      exists tw ts, t' :: ts' = ts ++ [tw]
+    ).
+    { 
+      clear. induction ts'.
+      - exists t', nil...
+      - destruct IHts' as [tw [ts]].
+        destruct ts.
+        + destruct ts'... invert H.
+          exists a, [tw]...
+        + simpl in H. invert H.
+          exists tw, (p :: a :: ts)...
+      Unshelve.
+      auto. auto.
+    }
+    destruct H1 as [tw [ts]]. 
+    rewrite H1 in *. clear H1 t' ts'.
+    destruct t0 as [s0 s0'].
+    destruct tw as [sw sw'].
+    apply TT_from_PC.
+    apply TT_from_PC in H0.
+    remember (
+      do_tt dom ((s0, s0') :: ts ++ [(sw, sw')])
+    ) as cr. clear Heqcr.
+    specialize H with (CXTPar1 CXTHole cr)...
+Qed.
+    
