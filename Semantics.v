@@ -174,7 +174,7 @@ Inductive CSemantics' : com -> pairsP state :=
   where "[| c |]'" := (CSemantics' c).
 #[global] Hint Constructors CSemantics' : core.
 
-(* equiv' *)
+(* stuttery mumbly *)
 
 Theorem ASemantics_stuttery_mumbly :
   forall a n, stuttery_mumbly [|a -> n|].
@@ -211,46 +211,6 @@ Proof with ellipsis.
   - induction H; ellipsis;
       invert IHstutter_mumble_closure;
       eapply SmMult...
-Qed.
-
-Theorem ASemantics_equiv' :
-  forall a n,
-    [|a -> n|] ~ LP{[|a -> n|]'^}.
-Proof with ellipsis.
-  intros a n ts; split.
-  - generalize dependent ts.
-    generalize dependent n.
-    clean_induction a; invert H;
-      eapply sm_closure_implication; ellipsis;
-      eapply sm_closure_implication'; ellipsis;
-      clear H4 ts; intro ts; intros;
-      destruct H as [ts1 [ts2 [H []]]];
-      clean_apply_in IHa1 H;
-      clean_apply_in IHa2 H0;
-      apply sm_closure_app...
-  - intros.
-    apply ASemantics_stuttery_mumbly.
-    eapply sm_closure_implication...
-    clear H ts. 
-    generalize dependent n.
-    clean_induction a; intros ts H; invert H.
-    + eapply SmNum...
-    + eapply SmId...
-    + eapply SmPlus...
-      destruct H4 as [l1 [l2 [H []]]].
-      subst. apply sm_self.
-      clean_apply_in IHa1 H.
-      clean_apply_in IHa2 H0...
-    + eapply SmMinus...
-      destruct H4 as [l1 [l2 [H []]]].
-      subst. apply sm_self.
-      clean_apply_in IHa1 H.
-      clean_apply_in IHa2 H0...
-    + eapply SmMult...
-      destruct H4 as [l1 [l2 [H []]]].
-      subst. apply sm_self.
-      clean_apply_in IHa1 H.
-      clean_apply_in IHa2 H0...
 Qed.
 
 Theorem BSemantics_stuttery_mumbly :
@@ -296,6 +256,92 @@ Proof with ellipsis.
       try solve [eapply SmAndTrue; ellipsis];
       eapply SmAndFalse; ellipsis;
       apply IHb1...
+Qed.
+
+Theorem CSemantics_stuttery_mumbly :
+  forall c, stuttery_mumbly [|c|].
+Proof with ellipsis.
+  intros c ts H. destruct c.
+  - assert (exists s, LP{[(s, s)]^} ts)...
+    { 
+      clean_induction H...
+      - invert H.
+      - destruct IHstutter_mumble_closure as [s].
+        exists s...
+      - destruct IHstutter_mumble_closure as [s].
+        exists s...
+    }
+    destruct H0 as [s]. eapply SmSkip...
+  - assert (exists s n, 
+      LP{[| a -> n |] ; [(s, (i |-> n; s))]} ts
+    ). 
+    { 
+      clean_induction H...
+      - invert H.
+      - destruct IHstutter_mumble_closure 
+          as [s [n]]...
+      - destruct IHstutter_mumble_closure 
+          as [s [n]]...
+    }
+    destruct H0 as [s [n]]. eapply SmAsgn...
+  - induction H; ellipsis;
+      invert IHstutter_mumble_closure;
+      eapply SmSeq...
+  - induction H; ellipsis;
+      invert IHstutter_mumble_closure;
+      try solve [eapply SmIfTrue; ellipsis];
+      try solve [eapply SmIfFalse; ellipsis].
+  - induction H; ellipsis;
+      invert IHstutter_mumble_closure;
+      eapply SmWhile...
+  - induction H; ellipsis;
+      invert IHstutter_mumble_closure;
+      eapply SmPar...
+  - induction H; ellipsis;
+      invert IHstutter_mumble_closure;
+      eapply SmAwait...
+Qed.
+
+(* equiv' *)
+
+Theorem ASemantics_equiv' :
+  forall a n,
+    [|a -> n|] ~ LP{[|a -> n|]'^}.
+Proof with ellipsis.
+  intros a n ts; split.
+  - generalize dependent ts.
+    generalize dependent n.
+    clean_induction a; invert H;
+      eapply sm_closure_implication; ellipsis;
+      eapply sm_closure_implication'; ellipsis;
+      clear H4 ts; intro ts; intros;
+      destruct H as [ts1 [ts2 [H []]]];
+      clean_apply_in IHa1 H;
+      clean_apply_in IHa2 H0;
+      apply sm_closure_app...
+  - intros.
+    apply ASemantics_stuttery_mumbly.
+    eapply sm_closure_implication...
+    clear H ts. 
+    generalize dependent n.
+    clean_induction a; intros ts H; invert H.
+    + eapply SmNum...
+    + eapply SmId...
+    + eapply SmPlus...
+      destruct H4 as [l1 [l2 [H []]]].
+      subst. apply sm_self.
+      clean_apply_in IHa1 H.
+      clean_apply_in IHa2 H0...
+    + eapply SmMinus...
+      destruct H4 as [l1 [l2 [H []]]].
+      subst. apply sm_self.
+      clean_apply_in IHa1 H.
+      clean_apply_in IHa2 H0...
+    + eapply SmMult...
+      destruct H4 as [l1 [l2 [H []]]].
+      subst. apply sm_self.
+      clean_apply_in IHa1 H.
+      clean_apply_in IHa2 H0...
 Qed.
 
 Theorem BSemantics_equiv' :
@@ -354,50 +400,6 @@ Proof with ellipsis.
       subst. apply sm_self.
       clean_apply_in IHb1 H.
       clean_apply_in IHb2 H0...
-Qed.
-
-Theorem CSemantics_stuttery_mumbly :
-  forall c, stuttery_mumbly [|c|].
-Proof with ellipsis.
-  intros c ts H. destruct c.
-  - assert (exists s, LP{[(s, s)]^} ts)...
-    { 
-      clean_induction H...
-      - invert H.
-      - destruct IHstutter_mumble_closure as [s].
-        exists s...
-      - destruct IHstutter_mumble_closure as [s].
-        exists s...
-    }
-    destruct H0 as [s]. eapply SmSkip...
-  - assert (exists s n, 
-      LP{[| a -> n |] ; [(s, (i |-> n; s))]} ts
-    ). 
-    { 
-      clean_induction H...
-      - invert H.
-      - destruct IHstutter_mumble_closure 
-          as [s [n]]...
-      - destruct IHstutter_mumble_closure 
-          as [s [n]]...
-    }
-    destruct H0 as [s [n]]. eapply SmAsgn...
-  - induction H; ellipsis;
-      invert IHstutter_mumble_closure;
-      eapply SmSeq...
-  - induction H; ellipsis;
-      invert IHstutter_mumble_closure;
-      try solve [eapply SmIfTrue; ellipsis];
-      try solve [eapply SmIfFalse; ellipsis].
-  - induction H; ellipsis;
-      invert IHstutter_mumble_closure;
-      eapply SmWhile...
-  - induction H; ellipsis;
-      invert IHstutter_mumble_closure;
-      eapply SmPar...
-  - induction H; ellipsis;
-      invert IHstutter_mumble_closure;
-      eapply SmAwait...
 Qed.
 
 Theorem CSemantics_equiv' :

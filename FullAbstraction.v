@@ -235,7 +235,7 @@ Proof with ellipsis.
     eapply SmAwait... apply sm_self...
 Qed.
 
-Theorem Semantics_equiv_ST: 
+Theorem Semantics_equiv_PC : (* Full abstraction! *)
   forall c c', 
     [|c|] |= [|c'|] <-> c <pc c'.
 Proof with ellipsis.
