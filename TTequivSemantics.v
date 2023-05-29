@@ -18,6 +18,7 @@ From WS  Require Import StateTrace.
 From WS  Require Import TransitionTrace.
 From WS  Require Import ImpLimited.
 
+(* aTT equiv Semantics *)
 
 Lemma aTT_equiv_semantics_num :
   forall n m,
@@ -904,7 +905,7 @@ Proof with ellipsis.
       apply sm_self...
 Qed.
 
-(* com *)
+(* TT equiv Semantics *)
 
 Theorem TT_asgn_substitutive : 
   forall i a ts,
@@ -1484,7 +1485,7 @@ Proof with ellipsis.
       apply bTT_equiv_semantics in H0.
       apply SmWhile. apply sm_self.
       exists l1. repeat esplit...
-      eapply star_implication...
+      eapply star_implecation...
       apply sm_closure_implication.
       clear H l1 H0. 
       intros l [l1 [l2 [H []]]]. subst.
@@ -1536,7 +1537,7 @@ Proof with ellipsis.
       apply TT_while_substitutive.
       apply sm_self.
       exists l1. repeat esplit...
-      eapply star_implication...
+      eapply star_implecation...
       clear H l1 H0 l2.
       apply sm_closure_implication. 
       intros l [l1 [l2 [H []]]]. subst.
