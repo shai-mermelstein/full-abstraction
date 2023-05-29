@@ -520,7 +520,7 @@ Proof with ellipsis.
       eapply SmAwait with s s'...
 Qed.
 
-(* nul not in Semantics *)
+(* nil not in Semantics *)
 
 Lemma nil_not_in_ASemantics :
   forall a n, ~ [|a -> n|] nil.
