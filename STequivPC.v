@@ -17,8 +17,16 @@ From WS  Require Import Contexts.
 From WS  Require Import PartialCorrectness.
 From WS  Require Import StateTrace.
 
+(* 
+  This file contains the proof or proposition 4.3 from Brookes,
+  that states C ≤_M C' iff C ≤_φ c'.
+*)
+
 (* auxiliary definitions *)
 
+(* 
+  Equivalent to Brookes IS_s
+*)
 Fixpoint is_state (is : identifiers) (s : state) :=
   match is with
   | nil     => <{true}>
@@ -38,7 +46,10 @@ Fixpoint do_st (is : identifiers) (ss : states) :=
 
 (* claims *)
 
-Lemma ST_imlies_PC :
+(* 
+  Observation made by Brookes, and used later on.
+*)
+Lemma ST_implies_PC :
   forall c d, c [st d -> c [pc d.
 Proof with ellipsis.
   unfold "[st", "[pc". 
@@ -47,6 +58,11 @@ Proof with ellipsis.
   invert H1...
 Qed. 
 
+(* 
+  Proving that the behavior of is_state
+    matches that required of IS_s by Brookes,
+    together with subsequent lemma. 
+*)
 Lemma is_state_self :
   forall is s,
     is_state is s / s -->b* <{true}>.
@@ -68,6 +84,9 @@ Proof with ellipsis.
   rewrite Nat.eqb_refl...
 Qed.
 
+(* 
+  See previous lemma
+*)
 Lemma is_state_is :
   forall s s',
     is_state dom s / s' -->b* <{true}>
@@ -86,6 +105,10 @@ Proof with ellipsis.
   - solve_by_inverts 4.
 Qed.
 
+(* 
+  Key observation that allows us to go from ST
+    to PC.
+*)
 Lemma PC_from_ST :
   forall c s0 sw ss,
     ST c (s0 :: ss ++ [sw])
@@ -156,6 +179,9 @@ Proof with ellipsis.
       invert H7...
 Qed.
 
+(* 
+    Proposition 4.3 of Brookes
+*)
 Theorem PC_equiv_ST: 
   forall c d, c <pc d <-> c <st d.
 Proof with ellipsis.
@@ -184,5 +210,5 @@ Proof with ellipsis.
     clean_apply_in H H1.
     apply PC_from_ST...
   - specialize H with cxt.
-    apply ST_imlies_PC in H...
+    apply ST_implies_PC in H...
 Qed.
