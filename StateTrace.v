@@ -16,8 +16,14 @@ From WS  Require Import AwaitDepth.
 From WS  Require Import Contexts.
 From WS  Require Import PartialCorrectness.
 
+(* 
+  Equivalent to Brookes ded. 4.2 of φ⟦-⟧
+  with the additional requirement that 
+    φ⟦-⟧s_0...s_k -> k > 0
+  (this is needed to insure that φ⟦skip⟧ = φ⟦skip; skip⟧)
+*)
 Inductive ST : com -> states -> Prop :=
-  | ST_Term :  forall c s s',
+  | ST_Term : forall c s s',
     c / s -->* <{skip}> / s' 
       ->
     ST c [s; s']
@@ -29,6 +35,9 @@ Inductive ST : com -> states -> Prop :=
     ST c (s :: s' :: ss).
 #[global] Hint Constructors ST : core.
 
+(*
+  Equivalent to Brookes definition of ⊑_φ
+*)
 Definition STpreorder c d := ST c |= ST d.
 Notation "c '[st' d" := (STpreorder c d) 
   (at level 50).
@@ -36,6 +45,9 @@ Notation "c '~st' d" := (c [st d /\ d [st c)
   (at level 50).
 #[global] Hint Transparent STpreorder : core.
 
+(*
+  Equivalent to Brookes definition of ≤_φ and =_φ
+*)
 Definition STorder c d :=
   forall cxt, plug cxt c [st plug cxt d.
 Notation "c '<st' d" := (STorder c d) 

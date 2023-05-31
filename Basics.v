@@ -7,6 +7,11 @@ From Coq Require Import Lia.
 From Coq Require Import FinFun.
 Import ListNotations.
 
+(* 
+  Notations to do with implications,
+  namely |= and ~.
+*)
+
 Definition implies {A} (P1 P2 : A -> Prop) 
   : Prop :=
   forall (a : A), P1 a -> P2 a.
