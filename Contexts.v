@@ -13,6 +13,22 @@ From WS  Require Import Lists.
 From WS  Require Import Multi.
 From WS  Require Import Imp.
 
+(* 
+  The notion of a 'program context' is introduced
+    by Brookes in section 4 (Program Behavior), and
+    notated by his as P[-]. It is defined as a
+    program with a hole, into which a command may be 
+    substituted.
+  This file translates this notion to Coq.
+*)
+
+(* 
+  Defining a program context.
+  Note that since a program context must contain 
+    one and only one hole, a context is either a hole,
+    or mimics some complex program structure, where one
+    of the inner commands contains a hole.
+*)
 Inductive context : Type :=
   | CXTSeq1  : context -> com     -> context
   | CXTSeq2  : com     -> context -> context
@@ -24,6 +40,12 @@ Inductive context : Type :=
   | CXTAwait : bexp    -> context -> context
   | CXTHole  : context.
 
+(* 
+  This function represents substituting a command
+    into a program context.
+  I.e. plug P c = P[-] |-> c |-> P[c] using Brookes's 
+    notations.
+*)
 Fixpoint plug (cxt : context) (p : com) : com :=
   match cxt with
   | CXTSeq1 cxt c  => CSeq (plug cxt p) c

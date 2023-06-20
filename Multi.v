@@ -7,8 +7,15 @@ From Coq Require Import Lia.
 Import ListNotations.
 From WS  Require Import Tactics.
 
+(* 
+  This file defines the transitive closure of a relation.
+*)
+
 Definition relation (X : Type) := X -> X -> Prop.
 
+(* 
+  multi R is the transitive closure of R.
+*)
 Inductive multi {X} (R : relation X) : relation X :=
   | multi_refl : forall (x : X), 
     multi R x x

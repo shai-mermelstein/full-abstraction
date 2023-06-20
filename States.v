@@ -10,6 +10,16 @@ From WS Require Import Tactics.
 From WS Require Import Basics.
 From WS Require Import Lists.
 
+(* 
+  This file defines our domain, states, and proves
+    some basic lemma about them.
+  Note that we assume a finite domain, s.t. we can
+    decide equality on it. This is a reasonable 
+    assumption, as any program may contain at most 
+    finitely-many identifiers,  and in order to resolve 
+    it we must be able to compare identifiers.
+*)
+
 Parameter identifier : Type.
 Definition identifiers := list identifier.
 

@@ -15,6 +15,21 @@ From WS  Require Import AwaitDepth.
 From WS  Require Import StepsTo.
 From WS  Require Import TransitionTrace.
 
+(* 
+  This file defines a notion of a command step, 
+    that keeps track of the number of loop-
+    unfoldings done.
+  Intuitively, we write
+      c / s, n --> c' / s', n' 
+    when 
+      c / s --> c' / s'
+    and the step involves (n - n') loop-unfoldings.
+  (This construction is defined to make defining
+    the transitive closure simple. )
+  It is used in proving the substitutive semantics of 
+    (while) loops.
+*)
+
 Reserved Notation " t '/' s ',' n '-->' t' '/' s' ',' n' "
   (at level 40, s at level 39, t' at level 39).
 Inductive lstep : relation (com * state * nat) :=

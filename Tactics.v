@@ -6,6 +6,10 @@ From Coq Require Import Lists.List.
 From Coq Require Import Lia.
 Import ListNotations.
 
+(* 
+  Useful tactics
+*)
+
 Ltac clean_inversion H := 
   inversion H; subst; eauto; clear H.
 Ltac invert H := clean_inversion H.

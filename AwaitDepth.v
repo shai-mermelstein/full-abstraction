@@ -12,6 +12,19 @@ From WS  Require Import Lists.
 From WS  Require Import Multi.
 From WS  Require Import Imp.
 
+(* 
+  This file includes useful definitions and lemmas
+  for dealing with induction on command-steps that
+  involve await statements. 
+*)
+
+(* 
+  A function for extracting the maximum await depth of
+  a program.
+  E.g. 
+  - await_depth <{skip}> = 0, 
+  - await_depth <{await true then skip end}> = 1
+*)
 Fixpoint await_depth (c : com) :=
   match c with
   | CSkip       => 0
@@ -59,6 +72,11 @@ Proof with ellipsis.
         <= await_depth c2)...
 Qed.
 
+(* 
+  Lemma for proving a property of commands
+  using strong induction on the commands 
+  maximum await depth.
+*)
 Lemma await_depth_induction :
   forall (P : com -> Prop),
     (

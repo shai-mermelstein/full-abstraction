@@ -9,7 +9,7 @@ Import ListNotations.
 
 (* 
   Notations to do with implications,
-  namely |= and ~.
+    namely |= and ~.
 *)
 
 Definition implies {A} (P1 P2 : A -> Prop) 

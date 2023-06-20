@@ -13,6 +13,13 @@ From WS  Require Import Imp.
 From WS  Require Import Basics.
 From WS  Require Import AwaitDepth.
 
+(* 
+  This file contains characterizations of the 
+    configurations a given program may step to 
+    (in an arbitrary amount of steps).
+  Used in TTequivSemantics.v.
+*)
+
 (* aexp *)
 
 Lemma plus_steps_to :

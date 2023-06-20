@@ -16,6 +16,21 @@ From WS  Require Import AwaitDepth.
 From WS  Require Import Contexts.
 From WS  Require Import PartialCorrectness.
 
+(* 
+  This file defines a substitutive semantics for 
+    commands, which is equal to that defined
+    by its transition-traces (this is proved in 
+    TTequivSemantics.v / proposition 9.3).
+  Hence, while defined differently, it matches 
+    Brookes 'T⟦-⟧' notation.
+  This file also contains proofs that [| |] is closed
+    under stutters and mumbles.
+  The definitions often involve taking the 'stutter
+    mumble closure' on some predicate. This file also 
+    contains the proof that this operation can be
+    'delayed' to the end.
+*)
+
 Reserved Notation "[| a -> n |]"
   (at level 0, a custom com at level 99).
 Inductive ASemantics : aexp -> nat -> pairsP state :=
@@ -94,7 +109,10 @@ Inductive CSemantics : com -> pairsP state :=
   where "[| c |]" := (CSemantics c).
 #[global] Hint Constructors CSemantics : core.
 
-(* delayed ^ *)
+(* 
+  [| |]' notation refers to [| |] without taking 
+    the 'stutter mumble closure'.
+*)
 
 Reserved Notation "[| a -> n |]'"
   (at level 0, a custom com at level 99).
@@ -174,7 +192,10 @@ Inductive CSemantics' : com -> pairsP state :=
   where "[| c |]'" := (CSemantics' c).
 #[global] Hint Constructors CSemantics' : core.
 
-(* stuttery mumbly *)
+(* 
+  Stuttery mumbly - showing closure of [| |]
+    under stutter and mumbles 
+*)
 
 Theorem ASemantics_stuttery_mumbly :
   forall a n, stuttery_mumbly [|a -> n|].
@@ -302,7 +323,9 @@ Proof with ellipsis.
       eapply SmAwait...
 Qed.
 
-(* equiv' *)
+(*   
+  Equality of LP{[| |]'^} with [| |]. 
+*)
 
 Theorem ASemantics_equiv' :
   forall a n,
@@ -520,7 +543,9 @@ Proof with ellipsis.
       eapply SmAwait with s s'...
 Qed.
 
-(* nil not in Semantics *)
+(* 
+  nil is not in the [| |] of anything.
+*)
 
 Lemma nil_not_in_ASemantics :
   forall a n, ~ [|a -> n|] nil.

@@ -27,13 +27,15 @@ From WS  Require Import FullAbstraction.
 *)
 
 (* 
+  An example showing that PC-preorder does not
+   imply ST-preorder.
   Brookes uses <{X := 1; X := X + 1}> & <{X := 2}>
     for this end. 
   However, proving that using fine-grained semantics
     is not simple, and it is also unnecessary,
     as demonstrated.
 *)
-Example PC_doesn't_imply_PC :
+Example PC_doesn't_imply_ST :
   <{X := 1; X := 2}> [pc <{X := 2}>
     /\
   ~ <{X := 1; X := 2}> [st <{X := 2}>.

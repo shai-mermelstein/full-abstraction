@@ -19,6 +19,13 @@ From WS  Require Import TransitionTrace.
 From WS  Require Import TTequivSemantics.
 From WS  Require Import Contexts.
 
+(* 
+  This file is roughly equivalent to section 7
+    (Full Abstraction) in Brookes's paper.
+  It will show that the semantics defined in
+    'Semantics.v' are fully abstract.
+*)
+
 (* auxiliary destinations *)
 
 (* Fixpoint is_state is (s : state) :=
@@ -27,12 +34,27 @@ From WS  Require Import Contexts.
   | i :: is => <{i = (s i) && (is_state is s)}>
   end. *)
 
+(* 
+  Corresponds to the MAKE_s command defined by
+    Brookes. Explicitly, MAKE_s corresponds to
+    'make_state dom s'.
+  Constructed s.t. (make_state dom s, s') -->* (skip, s)
+    forall s'.
+*)
 Fixpoint make_state is (s : state) :=
   match is with
   | nil     => <{skip}>
   | i :: is => <{i := (s i); (make_state is s)}>
   end.
 
+(* 
+  Corresponds to the DO_a command defined by
+    Brookes. Explicitly, DO_a corresponds to
+    'do_tt dom a.
+  Note that for ease of definition, an extra 
+    <{skip}> is appended to the end of the command,
+    when compared to Brookes's definition.
+*)
 Fixpoint do_tt is (ts : transitions) :=
   match ts with
   | nil             => <{skip}>
@@ -49,6 +71,9 @@ Fixpoint do_tt is (ts : transitions) :=
 
 (* claims *)
 
+(* 
+  The aforementioned key property of make_state.
+*)
 Lemma make_state_self :
   forall s0 s1,
     make_state dom s1 / s0 -->* <{skip}> / s1.
@@ -72,6 +97,10 @@ Proof with ellipsis.
       apply H. intros [C|C]...
 Qed.
 
+(* 
+  A useful observation (the corresponding uniqueness 
+    claim to the previous claim).
+*)
 Lemma make_state_makes :
   forall s s1 s2,
     make_state dom s1 / s -->* <{skip}> / s2
@@ -105,6 +134,14 @@ Proof with ellipsis.
     invert H2. invert H...
 Qed.
 
+(* 
+  A key lemma for proving full abstraction.
+  This lemma allows us to convert statements 
+    using transition traces (TT) to statements 
+    using partial correctness (PC).
+  Brookes essentially proves this lemma as part 
+    of his proof of full abstraction (proposition 7.1).
+*)
 Lemma TT_from_PC :
   forall c s0 s0' sw sw' ts,
     TT c ((s0, s0') :: ts ++ [(sw, sw')])
@@ -202,6 +239,10 @@ Proof with ellipsis.
     + destruct ts as [ |[s1 s1'] ts]...
 Qed.
 
+(* 
+  Brookes proves this as part  of his proof 
+    of full abstraction (proposition 7.1).
+*)
 Theorem Semantics_substitutive :
   forall c c' cxt,
     [|c|] |= [|c'|]
@@ -235,6 +276,9 @@ Proof with ellipsis.
     eapply SmAwait... apply sm_self...
 Qed.
 
+(* 
+  Full abstraction proof (proposition 7.1).
+*)
 Theorem Semantics_equiv_PC : (* Full abstraction! *)
   forall c c', 
     [|c|] |= [|c'|] <-> c <pc c'.
