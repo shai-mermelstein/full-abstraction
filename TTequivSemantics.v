@@ -18,6 +18,23 @@ From WS  Require Import StateTrace.
 From WS  Require Import TransitionTrace.
 From WS  Require Import ImpLimited.
 
+(* 
+  This file parallels sections 6 & 9 of Brookes's.
+    Both show the substitutive nature of transition 
+    traces. However, while Brookes begins by defining
+    transition traces semantics, then showing that it can 
+    be uniquely characterized by substitutive clauses,
+    here transition trace semantics (TT) and the 
+    substitutive semantics (Semantics = [| |]) were
+    defined separately (in TransitionTrace.v and 
+    Semantics.v respectively), and in this file 
+    equality is shown between them.
+  Note that Brookes initially deals with rough-grained
+    semantics, then expands it into fine-grained 
+    semantics. Here, however, only fine-grained semantics
+    is dealt with. 
+*)
+
 (* aTT equiv Semantics *)
 
 Lemma aTT_equiv_semantics_num :
