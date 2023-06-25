@@ -33,6 +33,19 @@ From WS  Require Import ImpLimited.
     semantics, then expands it into fine-grained 
     semantics. Here, however, only fine-grained semantics
     is dealt with. 
+  
+    The proofs in this file are as follows:
+    - We first deal with arithmetic expressions,
+        the Boolean ones, then finally with commands.
+        Note that each stage relies on the one before it.
+    - For each complex structure, we proof that its
+        transition traces are formed from those of its 
+        components.
+      The claims are called (aTT/bTT/TT)_*_substitutive
+        where * is the name of the structure (i.e. seq).
+    - In (aTT/bTT/TT)_equiv_semantics, we show equivalence
+        of the respective transition trace behavior to
+        that defined by [| |].
 *)
 
 (* aTT equiv Semantics *)

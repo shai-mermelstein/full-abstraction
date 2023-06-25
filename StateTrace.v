@@ -17,7 +17,7 @@ From WS  Require Import Contexts.
 From WS  Require Import PartialCorrectness.
 
 (* 
-  Equivalent to Brookes ded. 4.2 of φ⟦-⟧
+  Equivalent to Brookes def. 4.2 of φ⟦-⟧
   with the additional requirement that 
     φ⟦-⟧s_0...s_k -> k > 0
   (this is needed to insure that φ⟦skip⟧ = φ⟦skip; skip⟧)

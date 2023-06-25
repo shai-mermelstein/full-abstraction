@@ -16,6 +16,10 @@ From WS  Require Import StepsTo.
 From WS  Require Import PartialCorrectness.
 From WS  Require Import StateTrace.
 
+(* 
+  Equivalent to Brookes def. of T⟦-⟧ 
+    for arithmetic expressions (found in section 9).
+*)
 Inductive aTT (n : nat) : aexp -> transitions -> Prop :=
   | aTT_Term :  forall a0 s,
     a0 / s -->a* n
@@ -29,6 +33,10 @@ Inductive aTT (n : nat) : aexp -> transitions -> Prop :=
     aTT n a0 ((s, s) :: ts).
 #[global] Hint Constructors aTT : core.
 
+(* 
+  Equivalent to Brookes def. of T⟦-⟧ 
+    for Boolean expressions (found in section 9).
+*)
 Inductive bTT v : bexp -> transitions -> Prop :=
   | bTT_Term :  forall b0 s,
     b0 / s -->b* (bool_bexp v)
@@ -42,6 +50,10 @@ Inductive bTT v : bexp -> transitions -> Prop :=
     bTT v b0 ((s, s) :: ts).
 #[global] Hint Constructors bTT : core.
 
+(* 
+  Equivalent to Brookes def. of T⟦-⟧ for
+    commands (found in section 6).
+*)
 Inductive TT : com -> transitions -> Prop :=
   | TT_Term :  forall c0 s0 s1,
     c0 / s0 -->* <{skip}> / s1
@@ -55,6 +67,9 @@ Inductive TT : com -> transitions -> Prop :=
     TT c0 ((s0, s1) :: ts).
 #[global] Hint Constructors TT : core.
 
+(*
+  Equivalent to Brookes definition of ≤_T and =_T
+*)
 Definition TTorder c c' :=
   forall ps, TT c ps -> TT c' ps.
 Notation " c '<tt' c'" := 
@@ -69,6 +84,9 @@ Notation " c '~=tt' c'" :=
 
 (* auxiliary definitions *)
 
+(* 
+  Used in ST_from_TT below.
+*)
 Fixpoint trace_to_tt (ss : list state) :=
   match ss with
   | nil      => nil
@@ -80,6 +98,9 @@ Fixpoint trace_to_tt (ss : list state) :=
 
 (* claims *)
 
+(* 
+  Observation made by Brookes in section 6.
+*)
 Theorem PC_from_TT :
   forall c t,
     PC c t <-> TT c [t].
@@ -89,6 +110,9 @@ Proof with ellipsis.
   solve_by_inverts 2.
 Qed.
 
+(* 
+  Observation made by Brookes in section 6.
+*)
 Theorem ST_from_TT :
   forall c ss,
     ST c ss <-> TT c (trace_to_tt ss).
@@ -100,6 +124,14 @@ Proof with ellipsis.
     induction ss; intros...
     destruct ss... destruct ss...
 Qed.
+
+(* 
+  Showing that transition traces are closed under
+    stutters and mumbled.
+  Brookes makes this claim 
+    in section 6 for commands, and 9 for 
+    expressions.
+*)
 
 Theorem aTT_stuttery_mumbly: 
   forall n a, 
