@@ -28,11 +28,16 @@ From WS  Require Import Contexts.
 
 (* auxiliary destinations *)
 
-(* Fixpoint is_state is (s : state) :=
+(* 
+  Equivalent to Brookes IS_s
+  Copied from STequivPC.v for reference.
+
+Fixpoint is_state is (s : state) :=
   match is with
   | nil     => <{true}>
   | i :: is => <{i = (s i) && (is_state is s)}>
-  end. *)
+  end. 
+*)
 
 (* 
   Corresponds to the MAKE_s command defined by
@@ -242,6 +247,9 @@ Qed.
 (* 
   Brookes proves this as part  of his proof 
     of full abstraction (proposition 7.1).
+  A corollary of substitute nature of [| |],
+    if one program is 'contained' in another,
+    then iit will remain true in any context.
 *)
 Theorem Semantics_substitutive :
   forall c c' cxt,

@@ -88,6 +88,10 @@ Notation " t '/' s ',' n '-->*' t' '/' s' ',' n' " :=
   (multi lstep  (t, s, n) (t', s', n'))
     (at level 40, s at level 39, t' at level 39).
     
+(* 
+  lTT corresponds to TT, but keeps track
+    of the number of loop-unfoldings
+*)
 Inductive lTT (n : nat) : com -> transitions -> Prop :=
   | lTT_Term : 
       forall c0 s0 s1,
@@ -105,6 +109,10 @@ Inductive lTT (n : nat) : com -> transitions -> Prop :=
 
 (* lemmas - lstep *)
 
+(* 
+  Same as await_depth_monotone in AwaitDepth.v,
+    but for lstep.
+*)
 Lemma l_await_depth_monotone :
   forall c0 cw s0 sw n0 nw,
     c0 / s0, n0 -->* cw / sw, nw
@@ -191,7 +199,14 @@ Proof with ellipsis.
     eapply l_await_depth_monotone...
 Qed.
 
-Lemma lstep_add_equaly :
+(* 
+  Since for
+      c / s, n -->* c' / s', n'
+    what matters is the difference (n - n'),
+    offsetting n and n' by the same amount
+    preserves correctness.
+*)
+Lemma lstep_add_equally :
   forall c0 cw s0 sw n0 nw d,
     c0 / s0, n0 -->* cw / sw, nw
       <->
@@ -278,6 +293,10 @@ Proof with ellipsis.
       eapply l_await_depth_monotone...
 Qed.
 
+(* 
+  Key lemma allowing us to move between
+    cstep and lstep.
+*)
 Lemma lstep_equiv_cstep :
   forall c0 cw s0 sw,
     c0 / s0 -->* cw / sw
@@ -391,7 +410,12 @@ Proof with ellipsis.
       eapply l_await_depth_monotone...
 Qed.
 
-Lemma lstep_equiv_lstep0 :
+(* 
+  A corollary of lstep_add_equaly,
+    we can always insist that we end up
+    with n = 0.
+*)
+Corollary lstep_equiv_lstep0 :
   forall c0 cw s0 sw n0 nw,
     c0 / s0, n0 -->* cw / sw, nw
       ->
@@ -406,6 +430,12 @@ Proof with ellipsis.
 Qed.
 
 (* lemmas - lstep steps to *)
+
+(* 
+  The following lemmas are equivalent
+    to lemmas in StepsTo.v, but applied
+    to lstep rather than cstep
+*)
 
 Lemma l_if_steps_to :
   forall b c1 c2 c s0 s1 n0 n1,
@@ -513,16 +543,24 @@ Proof with ellipsis.
       apply lstep_equiv_lstep0 in H...
 Qed.
 
+(* 
+  A while statement cannot normalize
+    with zero loop-unfoldings.
+*)
 Lemma lTT_while_positive :
   forall n c b ts,
-  lTT n <{while b do c end}> ts
-    ->
-  n > 0.
+    lTT n <{while b do c end}> ts
+      ->
+    n > 0.
 Proof with ellipsis.
   intros. destruct n... exfalso.
   induction ts... solve_by_inverts 3.
 Qed.
 
+(* 
+  Equivalent to while_equiv_if_while,
+    but for lstep.
+*)
 Lemma l_while_equiv_if_while :
   forall b c n ts,
     lTT (S n) <{while b do c end}> ts
@@ -540,6 +578,10 @@ Proof with ellipsis.
   - induction ts...
 Qed.
 
+(* 
+  Equivalent to TT_stuttery_mumbly
+    in TransitionTrace.v
+*)
 Theorem lTT_stuttery_mumbly: 
   forall c n, 
     stuttery_mumbly (lTT n c).
@@ -562,6 +604,12 @@ Proof with ellipsis.
         auto.
 Qed.
 
+(* 
+  The substitutive nature of if under
+    lstep.
+  Equivalent to TT_if_substitutive
+    in TTequivSemantics.v
+*)
 Theorem lTT_if_substitutive :
   forall c1 c2 b ts n,
     lTT n <{if b then c1 else c2 end}> ts
@@ -638,6 +686,12 @@ Proof with ellipsis.
         induction H...
 Qed.
 
+(* 
+  The substitutive nature of seq under
+    lstep.
+  Equivalent to TT_seq_substitutive
+    in TTequivSemantics.v
+*)
 Theorem lTT_seq_substitutive :
   forall c1 c2 n ts,
     lTT n <{c1; c2}> ts
@@ -734,6 +788,11 @@ Proof with ellipsis.
       rewrite <- lstep_add_equaly...
 Qed.
       
+(* 
+  Key lemma proving the substitutive nature of while
+    under lstep.
+  This is the reason for defining lstep.
+*)
 Lemma lTT_while_substitutive :
   forall n c b ts,
     lTT n <{while b do c end}> ts
