@@ -1359,9 +1359,8 @@ Lemma while_equiv_if_while :
       <->
     TT <{if b then c; while b do c end else skip end}> ps.
 Proof with ellipsis.
-  intros; split; intros.
-  - induction ps... solve_by_inverts 3.
-  - induction ps...
+  intros; split; intros; induction ps...
+  solve_by_inverts 3.
 Qed.
       
 Theorem TT_while_substitutive :

@@ -36,6 +36,10 @@ Fixpoint await_depth (c : com) :=
   | CAwait b c1 => S (await_depth c1)
   end.
 
+(* 
+  As a program runs (i.e. step to other programs),
+    the maximum await depth cannot increase.
+*)
 Lemma await_depth_monotone :
   forall c0 cw s0 sw,
     c0 / s0 -->* cw / sw 

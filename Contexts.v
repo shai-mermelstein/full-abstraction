@@ -19,11 +19,11 @@ From WS  Require Import Imp.
     notated by his as P[-]. It is defined as a
     program with a hole, into which a command may be 
     substituted.
-  This file translates this notion to Coq.
+  This file translates this notion into Coq.
 *)
 
 (* 
-  Defining a program context.
+  Definition of a program context.
   Note that since a program context must contain 
     one and only one hole, a context is either a hole,
     or mimics some complex program structure, where one

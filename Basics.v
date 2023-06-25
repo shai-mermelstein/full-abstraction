@@ -26,7 +26,7 @@ Infix "~" := equiv (at level 90).
 
 Definition Id {A} (a : A) (a' : A) := a = a'.
 
-Lemma equiv_refl :
+(* Lemma equiv_refl :
   forall A (P : A -> Prop), P ~ P.
 Proof.
   intros. intro a. split; auto.
@@ -36,6 +36,6 @@ Lemma implies_refl :
   forall A (P : A -> Prop), P |= P.
 Proof.
   intros. intro a. intros. assumption.
-Qed.
+Qed. *)
 
 
