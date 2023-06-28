@@ -34,19 +34,19 @@ From WS  Require Import PartialCorrectness.
 Reserved Notation "[| a -> n |]"
   (at level 0, a custom com at level 99).
 Inductive ASemantics : aexp -> nat -> pairsP state :=
-  | SmNum : forall s (n : nat),
-    LP{[(s, s)]^} |= [|n -> n|] 
+  | SmNum : forall (s : state) (n : nat),
+    LP{[(s, s)]^} =>> [|n -> n|] 
   | SmId : forall s (i : identifier),
-    LP{[(s, s)]^} |= [|i -> s i|] 
+    LP{[(s, s)]^} =>> [|i -> s i|] 
   | SmPlus : forall a1 a2 n1 n2,
     LP{[|a1 -> n1|] ; [|a2 -> n2|]}
-      |= [|a1 + a2 -> n1 + n2|]
+      =>> [|a1 + a2 -> n1 + n2|]
   | SmMinus : forall a1 a2 n1 n2,
     LP{[|a1 -> n1|] ; [|a2 -> n2|]} 
-      |= [|a1 - a2 -> n1 - n2|]
+      =>> [|a1 - a2 -> n1 - n2|]
   | SmMult : forall a1 a2 n1 n2,
     LP{[|a1 -> n1|] ; [|a2 -> n2|]} 
-      |= [|a1 * a2 -> n1 * n2|]
+      =>> [|a1 * a2 -> n1 * n2|]
   where "[| a -> n |]" := (ASemantics a n).
 #[global] Hint Constructors ASemantics : core.
 
@@ -57,23 +57,23 @@ Reserved Notation "[| b |]f"
 Reserved Notation "[| b ->b v |]"
   (at level 0, b custom com at level 99).
 Inductive BSemantics : bexp -> bool -> pairsP state :=
-  | SmTrue : forall s,
-    LP{[(s, s)]^} |= [|true|]t
-  | SmFalse : forall s,
-    LP{[(s, s)]^} |= [|false|]f
+  | SmTrue : forall (s : state),
+    LP{[(s, s)]^} =>> [|true|]t
+  | SmFalse : forall (s : state),
+    LP{[(s, s)]^} =>> [|false|]f
   | SmNot : forall b v,
-    [|b ->b v|] |= [|~b ->b negb v|]
+    [|b ->b v|] =>> [|~b ->b negb v|]
   | SmEq : forall a1 a2 n1 n2,
     LP{[|a1 -> n1|] ; [|a2 -> n2|]} 
-      |= [|a1 = a2 ->b (n1 =? n2)%nat|]
+      =>> [|a1 = a2 ->b (n1 =? n2)%nat|]
   | SmLe : forall a1 a2 n1 n2,
     LP{[|a1 -> n1|] ; [|a2 -> n2|]} 
-      |= [|a1 <= a2 ->b (n1 <=? n2)%nat|]
+      =>> [|a1 <= a2 ->b (n1 <=? n2)%nat|]
   | SmAndFalse : forall b1 b2,
-    [|b1|]f |= [|b1 && b2|]f
+    [|b1|]f =>> [|b1 && b2|]f
   | SmAndTrue : forall b1 b2 v,
     LP{[|b1|]t ; [|b2 ->b v|]} 
-      |= [|b1 && b2 ->b v|]
+      =>> [|b1 && b2 ->b v|]
   where "[| b |]t" := (BSemantics b true)
   and   "[| b |]f" := (BSemantics b false)
   and   "[| b ->b v |]" := (BSemantics b v).
@@ -82,30 +82,30 @@ Inductive BSemantics : bexp -> bool -> pairsP state :=
 Reserved Notation "[| c |]"
   (at level 0, c custom com at level 99).
 Inductive CSemantics : com -> pairsP state :=
-  | SmSkip : forall s,
-    LP{[(s, s)]^} |= [|skip|]
-  | SmAsgn : forall i a n s,
+  | SmSkip : forall (s : state),
+    LP{[(s, s)]^} =>> [|skip|]
+  | SmAsgn : forall i a n (s : state),
     LP{[|a -> n|] ; [(s, (i |-> n; s))]} 
-      |= [|i := a|]
+      =>> [|i := a|]
   | SmSeq : forall c1 c2,
-    LP{[|c1|]; [|c2|]} |= [|c1; c2|]
+    LP{[|c1|]; [|c2|]} =>> [|c1; c2|]
   | SmIfTrue : forall b c1 c2,
     LP{[|b|]t ; [|c1|]} 
-      |= [|if b then c1 else c2 end|]
+      =>> [|if b then c1 else c2 end|]
   | SmIfFalse : forall b c1 c2,
     LP{[|b|]f ; [|c2|]}
-      |= [|if b then c1 else c2 end|]
+      =>> [|if b then c1 else c2 end|]
   | SmWhile : forall b c,
     LP{([|b|]t ; [|c|])* ; [|b|]f} (* star does not include ^, unlike Brookes*)
-      |= [|while b do c end|]
+      =>> [|while b do c end|]
   | SmPar : forall c1 c2,
-    LP{[|c1|] || [|c2|]} |= [|c1 || c2|]
-  | SmAwait : forall b c s s',
+    LP{[|c1|] || [|c2|]} =>> [|c1 || c2|]
+  | SmAwait : forall b c (s s' : state),
     [|b|]t [(s, s)]
       ->
     [|c|] [(s, s')]
       ->
-    LP{[(s, s')]^} |= [|await b then c end|]
+    LP{[(s, s')]^} =>> [|await b then c end|]
   where "[| c |]" := (CSemantics c).
 #[global] Hint Constructors CSemantics : core.
 
@@ -117,19 +117,19 @@ Inductive CSemantics : com -> pairsP state :=
 Reserved Notation "[| a -> n |]'"
   (at level 0, a custom com at level 99).
 Inductive ASemantics' : aexp -> nat -> pairsP state :=
-  | SmNum' : forall s (n : nat),
-    LP{[(s, s)]} |= [|n -> n|]'
-  | SmId' : forall s (i : identifier),
-    LP{[(s, s)]} |= [| i -> s i|]' 
+  | SmNum' : forall (s : state) (n : nat),
+    LP{[(s, s)]} =>> [|n -> n|]'
+  | SmId' : forall (s : state) (i : identifier),
+    LP{[(s, s)]} =>> [| i -> s i|]' 
   | SmPlus' : forall a1 a2 n1 n2,
     LP{[|a1 -> n1|]' + [|a2 -> n2|]'}
-      |= [|a1 + a2 -> n1 + n2|]'
+      =>> [|a1 + a2 -> n1 + n2|]'
   | SmMinus' : forall a1 a2 n1 n2,
     LP{[|a1 -> n1|]' + [|a2 -> n2|]'}
-      |= [|a1 - a2 -> n1 - n2|]'
+      =>> [|a1 - a2 -> n1 - n2|]'
   | SmMult' : forall a1 a2 n1 n2,
     LP{[|a1 -> n1|]' + [|a2 -> n2|]'} 
-      |= [|a1 * a2 -> n1 * n2|]'
+      =>> [|a1 * a2 -> n1 * n2|]'
   where "[| a -> n |]'" := (ASemantics' a n).
 #[global] Hint Constructors ASemantics' : core.
 
@@ -140,23 +140,23 @@ Reserved Notation "[| b |]'f"
 Reserved Notation "[| b ->b v |]'"
   (at level 0, b custom com at level 99).
 Inductive BSemantics' : bexp -> bool -> pairsP state :=
-  | SmFalse' : forall s,
-    LP{[(s, s)]} |= [|true|]'t
-  | SmTrue' : forall s,
-    LP{[(s, s)]} |= [|false|]'f
+  | SmFalse' : forall (s : state),
+    LP{[(s, s)]} =>> [|true|]'t
+  | SmTrue' : forall (s : state),
+    LP{[(s, s)]} =>> [|false|]'f
   | SmNot' : forall b v,
-    [|b ->b v|]' |= [|~b ->b negb v|]'
+    [|b ->b v|]' =>> [|~b ->b negb v|]'
   | SmEq' : forall a1 a2 n1 n2,
     LP{[|a1 -> n1|]' + [|a2 -> n2|]'}
-      |= [|a1 = a2 ->b (n1 =? n2)%nat|]'
+      =>> [|a1 = a2 ->b (n1 =? n2)%nat|]'
   | SmLe' : forall a1 a2 n1 n2,
     LP{[|a1 -> n1|]' + [|a2 -> n2|]'}
-      |= [|a1 <= a2 ->b (n1 <=? n2)%nat|]'
+      =>> [|a1 <= a2 ->b (n1 <=? n2)%nat|]'
   | SmAndFalse' : forall b1 b2,
-    [|b1|]'f |= [|b1 && b2|]'f
+    [|b1|]'f =>> [|b1 && b2|]'f
   | SmAndTrue' : forall b1 b2 v,
     LP{[|b1|]'t + [|b2 ->b v|]'}
-      |= [|b1 && b2 ->b v|]'
+      =>> [|b1 && b2 ->b v|]'
   where "[| b |]'t" := (BSemantics' b true)
   and   "[| b |]'f" := (BSemantics' b false)
   and   "[| b ->b v |]'" := (BSemantics' b v).
@@ -165,30 +165,30 @@ Inductive BSemantics' : bexp -> bool -> pairsP state :=
 Reserved Notation "[| c |]'"
   (at level 0, c custom com at level 99).
 Inductive CSemantics' : com -> pairsP state :=
-  | SmSkip' : forall s,
-    LP{[(s, s)]} |= [|skip|]'
-  | SmAsgn' : forall i a n s,
+  | SmSkip' : forall (s : state),
+    LP{[(s, s)]} =>> [|skip|]'
+  | SmAsgn' : forall i a n (s : state),
     LP{[| a -> n |]' + [(s, (i |-> n; s))]} 
-      |= [|i := a|]'
+      =>> [|i := a|]'
   | SmSeq' : forall c1 c2,
-    LP{[|c1|]' + [|c2|]'} |= [|c1; c2|]'
+    LP{[|c1|]' + [|c2|]'} =>> [|c1; c2|]'
   | SmIfTrue' : forall b c1 c2,
     LP{[|b|]'t + [|c1|]'} 
-      |= [|if b then c1 else c2 end|]'
+      =>> [|if b then c1 else c2 end|]'
   | SmIfFalse' : forall b c1 c2,
     LP{[|b|]'f + [|c2|]'}
-      |= [|if b then c1 else c2 end|]'
+      =>> [|if b then c1 else c2 end|]'
   | SmWhile' : forall b c,
     LP{([|b|]'t + [|c|]')* + [|b|]'f} 
-      |= [|while b do c end|]'
+      =>> [|while b do c end|]'
   | SmPar' : forall c1 c2,
-    LP{[|c1|]' # [|c2|]'} |= [|c1 || c2|]'
-  | SmAwait' : forall b c s s',
+    LP{[|c1|]' # [|c2|]'} =>> [|c1 || c2|]'
+  | SmAwait' : forall b c (s s' : state),
     LP{[|b|]'t^} [(s, s)]
       ->
     LP{[|c|]'^} [(s, s')]
       ->
-    LP{[(s, s')]} |= [|await b then c end|]'
+    LP{[(s, s')]} =>> [|await b then c end|]'
   where "[| c |]'" := (CSemantics' c).
 #[global] Hint Constructors CSemantics' : core.
 
@@ -329,7 +329,7 @@ Qed.
 
 Theorem ASemantics_equiv' :
   forall a n,
-    [|a -> n|] ~ LP{[|a -> n|]'^}.
+    [|a -> n|] <=> LP{[|a -> n|]'^}.
 Proof with ellipsis.
   intros a n ts; split.
   - generalize dependent ts.
@@ -369,7 +369,7 @@ Qed.
 
 Theorem BSemantics_equiv' :
   forall b v,
-    [|b ->b v|] ~ LP{[|b ->b v|]'^}.
+    [|b ->b v|] <=> LP{[|b ->b v|]'^}.
 Proof with ellipsis.
   intros b v ts; split.
   - generalize dependent ts.
@@ -427,7 +427,7 @@ Qed.
 
 Theorem CSemantics_equiv' :
   forall c,
-    [|c|] ~ LP{[|c|]'^}.
+    [|c|] <=> LP{[|c|]'^}.
 Proof with ellipsis.
   intros c ts; split.
   - generalize dependent ts.

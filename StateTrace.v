@@ -38,7 +38,7 @@ Inductive ST : com -> states -> Prop :=
 (*
   Equivalent to Brookes definition of ⊑_φ
 *)
-Definition STpreorder c d := ST c |= ST d.
+Definition STpreorder c d := ST c =>> ST d.
 Notation "c '[st' d" := (STpreorder c d) 
   (at level 50).
 Notation "c '~st' d" := (c [st d /\ d [st c)

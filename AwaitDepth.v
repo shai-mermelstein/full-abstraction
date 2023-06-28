@@ -78,7 +78,7 @@ Qed.
 
 (* 
   Lemma for proving a property of commands
-  using strong induction on the commands 
+  using strong induction on the command's 
   maximum await depth.
 *)
 Lemma await_depth_induction :

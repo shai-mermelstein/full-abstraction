@@ -27,7 +27,7 @@ Definition PC c (t : transition) :=
 (*
   Equivalent to Brookes definition of ⊑_M
 *)
-Definition PCpreorder c d := PC c |= PC d.
+Definition PCpreorder c d := PC c =>> PC d.
 Notation "c '[pc' d" := (PCpreorder c d) 
   (at level 50).
 Notation "c '~pc' d" := (c [pc d /\ d [pc c)

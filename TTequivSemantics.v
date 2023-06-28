@@ -52,7 +52,7 @@ From WS  Require Import ImpLimited.
 
 Lemma aTT_equiv_semantics_num :
   forall n m,
-    aTT n (ANum m) ~ [|(ANum m) -> n|].
+    aTT n (ANum m) <=> [|(ANum m) -> n|].
 Proof with ellipsis.
   intros n m ts. split; intros.
   - remember (ANum m) as a. 
@@ -72,7 +72,7 @@ Qed.
 
 Lemma aTT_equiv_semantics_id :
   forall n i,
-    aTT n (AId i) ~ [|(AId i) -> n|].
+    aTT n (AId i) <=> [|(AId i) -> n|].
 Proof with ellipsis.
   intros n i ts. split; intros.
   - remember (AId i) as a.
@@ -433,7 +433,7 @@ Qed.
 
 Theorem aTT_equiv_semantics :
   forall n a,
-    aTT n a ~ [|a -> n|].
+    aTT n a <=> [|a -> n|].
 Proof with ellipsis.
   intros n a ts. split; intros.
   - generalize dependent ts.
@@ -842,7 +842,7 @@ Qed.
 
 Theorem bTT_equiv_semantics :
   forall v b,
-    bTT v b ~ [|b ->b v|].
+    bTT v b <=> [|b ->b v|].
 Proof with ellipsis.
   intros v b ts. split; intros.
   - generalize dependent ts.
@@ -1466,7 +1466,7 @@ Qed.
 
 Theorem TT_equiv_Semantics :
   forall c,
-    TT c ~ [|c|].
+    TT c <=> [|c|].
 Proof with ellipsis.
   intros c ts. split; intros.
   - generalize dependent ts.

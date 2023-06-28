@@ -115,6 +115,29 @@ Proof with ellipsis.
   rewrite H...
 Qed. 
 
+Lemma update_s_same :
+  forall s i,
+    (i |-> s i; s) = s.
+Proof with ellipsis.
+  intros.
+  apply functional_extensionality.
+  intros j.
+  unfold update_s.
+  destruct (j =? i) eqn:E...
+  apply ieq_iff_eq in E...
+Qed.
+
+Lemma update_s_shadow :
+  forall s i n m,
+    (i |-> n; s) = (i |-> n; i |-> m; s).
+Proof with ellipsis.
+  intros.
+  apply functional_extensionality.
+  intros j.
+  unfold update_s.
+  destruct (j =? i) eqn:E...
+Qed.
+
 Lemma states_equal_by_dom : 
   forall (s s' : state), 
     s = s' 

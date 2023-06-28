@@ -80,7 +80,7 @@ Qed.
 *)
 Theorem law_of_parallel_programming_1: 
   forall c, 
-    [|c|] ~ [|c ; skip|].
+    [|c|] <=> [|c ; skip|].
 Proof with ellipsis.
   split; repeat intro.
    - apply SmSeq.
@@ -136,7 +136,7 @@ Qed.
 
 Theorem law_of_parallel_programming_2: 
   forall c1 c2 c3, 
-    [|(c1; c2); c3|] ~ [|c1; (c2; c3)|].
+    [|(c1; c2); c3|] <=> [|c1; (c2; c3)|].
 Proof with ellipsis.
   intros. split; repeat intro.
   - apply CSemantics_equiv'.
@@ -167,9 +167,9 @@ Qed.
 
 Lemma semantics_implication_via':
   forall c1 c2,
-    [|c1|]' |= [|c2|]'
+    [|c1|]' =>> [|c2|]'
       ->
-    [|c1|] |= [|c2|].
+    [|c1|] =>> [|c2|].
 Proof with ellipsis.
   intros. intros ts H0.
   apply sm_closure_implication in H.
@@ -191,7 +191,7 @@ Qed.
 Theorem law_of_parallel_programming_3: 
   forall b1 b2 c1 c2,
     [|if b1 && b2 then c1 else c2 end|]
-      ~
+      <=>
     [|if b1 then if b2 then c1 else c2 end else c2 end|].
 Proof with ellipsis.
   intros. split; intros.
@@ -234,11 +234,122 @@ Qed.
 Theorem law_of_parallel_programming_4: 
   forall b c,
     [|while b do c end|]
-      ~
+      <=>
     [|if b then c; while b do c end else skip end|].
 Proof with ellipsis.
   intros; split; intros;
     apply TT_equiv_Semantics;
     apply while_equiv_if_while;
     apply TT_equiv_Semantics...
+Qed.
+
+(* ignore below line! *)
+
+(* 
+Example ori_1 : NOT TRUE
+  forall (i j : identifier),
+    [|i:=j|] =>> [|i:=j; j:=i|].
+Proof with ellipsis.
+  intros. intros ts H.
+  apply CSemantics_equiv'.
+  apply CSemantics_equiv' in H.
+  eapply sm_closure_implication'...
+  clear H ts. intros ts H.
+  invert H. invert H3.
+  destruct H as [? [? []]]. subst.
+  invert H. invert H0. invert H2.
+  subst. simpl. *)
+
+  (* if this isn't true, try with number for k *)
+(* Example ori_1 :  NOT TRUE!
+  forall (i j k: identifier),
+    i <> k
+      ->
+    [|i:=k|] =>> [|i:=j; i:=k|].
+Proof with ellipsis.
+  intros. intros ts ?.
+  apply CSemantics_equiv'.
+  apply CSemantics_equiv' in H0.
+  eapply sm_closure_implication'...
+  clear H0 ts. intros ts ?.
+  invert H0.
+  destruct H4 as [ts1 [ts2 [? []]]]. subst.
+  invert H0. invert H1. invert H3.
+  rename s into s1. 
+  replace ([(s0, s0)] ++ [(s1, i |-> s0 k; s1)])
+    with ([(s0, s0)] ++ [(s1, i |-> s0 k; s1)] ++ [])...
+  apply sm_mumbly with (i |-> s0 j; s1)...
+  simpl.
+  replace [(s0, s0); (s1, i |-> s0 j; s1); (i |-> s0 j; s1, i |-> s0 k; s1)]
+    with ([(s0, s0)] ++ [(s1, i |-> s0 j; s1)] ++[(i |-> s0 j; s1, i |-> s0 k; s1)])...
+  apply sm_mumbly with (i |-> s0 j; s1)...
+  simpl.
+  apply sm_self.
+  apply SmSeq'.
+  exists [(s0, s0); (s1, i |-> s0 j; s1)].
+  repeat esplit...
+  - apply SmAsgn' with (n:=s0 j) (s:=s1).
+    exists [(s0, s0)]. repeat esplit...
+    apply SmId'...
+  - apply SmAsgn' 
+      with (n:=s0 k) (s:=(i |-> s0 j; s1)).
+    exists [(i |-> s0 j; s1, i |-> s0 j; s1)]. 
+    repeat esplit...
+    + replace (s0 k)
+        with ((s0) k)
+      apply SmId'...
+
+
+
+    
+  exists [(s0, s0); (s0, s0)], 
+    [(s0, s0); (s1, i |-> s0 k; s1)].
+  repeat split...
+  - apply SmAsgn' with (n:=s0 j) (s:=s0).
+    exists [(s0, s0)]. repeat esplit...
+    + apply SmId'...
+    + replace (i |-> s0 j; s0) with s0...
+      symmetry.
+      apply update_s_same.
+  - apply SmAsgn' with (n:=s0 k) (s:=s1).
+    exists [(s0, s0)]. repeat esplit...
+    apply SmId'...
+Admitted. *)
+
+Example ori_3 : 
+  forall (i: identifier) (n m : nat),
+    [|i:=m|] =>> [|i:=n; i:=m|].
+Proof with ellipsis.
+  intros. intros ts ?.
+  apply CSemantics_equiv'.
+  apply CSemantics_equiv' in H.
+  eapply sm_closure_implication'...
+  clear H ts. intros ts ?.
+  invert H.
+  destruct H3 as [ts1 [ts2 [? []]]]. subst.
+  invert H. invert H0. invert H2.
+  rename s into s1. rename n0 into m. 
+  replace ([(s0, s0)] ++ [(s1, i |-> m; s1)])
+    with ([(s0, s0)] ++ [(s1, i |-> m; s1)] ++ [])...
+  apply sm_mumbly with (i |-> n; s1)...
+  simpl.
+  replace [(s0, s0); (s1, i |-> n; s1); (i |-> n; s1, i |-> m; s1)]
+    with ([(s0, s0)] ++ [(s1, i |-> n; s1)] ++[(i |-> n; s1, i |-> m; s1)])...
+  apply sm_mumbly with (i |-> n; s1)...
+  simpl.
+  apply sm_self.
+  apply SmSeq'.
+  exists [(s0, s0); (s1, i |-> n; s1)].
+  repeat esplit...
+  - apply SmAsgn' with (n:=n) (s:=s1).
+    exists [(s0, s0)]. repeat esplit...
+    eapply SmNum'...
+  - apply SmAsgn' 
+      with (n:=m) (s:=(i |-> n; s1)).
+    exists [(i |-> n; s1, i |-> n; s1)]. 
+    repeat esplit...
+    + eapply SmNum'...
+    + replace (i |-> m; i |-> n; s1)
+        with (i |-> m; s1)...
+      apply update_s_shadow.
 Qed.

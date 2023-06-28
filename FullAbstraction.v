@@ -253,9 +253,9 @@ Qed.
 *)
 Theorem Semantics_substitutive :
   forall c c' cxt,
-    [|c|] |= [|c'|]
+    [|c|] =>> [|c'|]
       ->
-    [|plug cxt c|] |= [|plug cxt c'|].
+    [|plug cxt c|] =>> [|plug cxt c'|].
 Proof with ellipsis.
   intros.
   clean_induction cxt; 
@@ -289,7 +289,7 @@ Qed.
 *)
 Theorem Semantics_equiv_PC : (* Full abstraction! *)
   forall c c', 
-    [|c|] |= [|c'|] <-> c <pc c'.
+    [|c|] =>> [|c'|] <-> c <pc c'.
 Proof with ellipsis.
   unfold "<pc", "[pc".
   intros; split; intros; intros t H0.
